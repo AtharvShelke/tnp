@@ -51,6 +51,7 @@ export default function NewBooklet({ initialData = {}, isUpdate = false }) {
 
   const onSubmit = async (data) => {
     data.imageUrl = imageUrl;
+    data.pdfUrl = pdfUrl;
     setLoading(true);
 
     try {
@@ -82,13 +83,7 @@ export default function NewBooklet({ initialData = {}, isUpdate = false }) {
         className="w-full max-w-3xl p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 mx-auto my-5"
       >
         <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
-          <TextInput
-            label="Booklet File"
-            name="booklet"
-            register={register}
-            errors={errors}
-            type="text"
-          />
+         
           <TextInput
             label="Title"
             name="title"

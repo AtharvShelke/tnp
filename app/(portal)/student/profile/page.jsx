@@ -11,19 +11,29 @@ export default function StudentProfilePage() {
         EMAIL: 'johndoe@gmail.com',
         department: 'Computer Science',
         Pass_out_Year: 2026,
-        tenth_board: 'SSC',
-        tenth_address: 'Chh. Sambhajinagar',
-        school: 'XYZ Public School',
-        tenth_marks: 90,
-        tenth_year: 2020,
-        twelfth_board: 'HSC',
-        twelfth_college: 'ABC College',
-        twelfth_marks: 90,
-        twelfth_year: 2022,
-        twelfth_address: 'Chh. Sambhajinagar',
+        education: [
+            {
+                board: 'SSC',
+                address: 'Chh. Sambhajinagar',
+                institute: 'XYZ Public School',
+                marks: 90,
+                year: 2020,
+            },
+            {
+                board: 'HSC',
+                institute: 'ABC College',
+                marks: 90,
+                year: 2022,
+                address: 'Chh. Sambhajinagar',
+            },
+
+        ],
+
+
         college: 'JNEC',
         college_address: 'Chh. Sambhajinagar',
         CGPA: 9.0,
+
         other_interests: 'Hiking, Riding, Reading',
         technicalSkills: [
             {
@@ -61,41 +71,41 @@ export default function StudentProfilePage() {
                 githubLink: 'https://github.com/username/weather-app',
             },
         ],
-        phone:8275334604,
-        github:'github.com/johndoe',
-        linkedIn:'linkedIn.com/johndoe',
-        documents:[
+        phone: 8275334604,
+        github: 'github.com/johndoe',
+        linkedIn: 'linkedIn.com/johndoe',
+        documents: [
             {
-                title:'X_Marksheet',
-                link:'#'
+                title: 'X_Marksheet',
+                link: '#'
             },
             {
-                title:'XII_Marksheet',
-                link:'#'
+                title: 'XII_Marksheet',
+                link: '#'
             },
             {
-                title:'Sem1_Marksheet',
-                link:'#'
+                title: 'Sem1_Marksheet',
+                link: '#'
             },
             {
-                title:'Sem2_Marksheet',
-                link:'#'
+                title: 'Sem2_Marksheet',
+                link: '#'
             },
             {
-                title:'Sem3_Marksheet',
-                link:'#'
+                title: 'Sem3_Marksheet',
+                link: '#'
             },
             {
-                title:'Sem4_Marksheet',
-                link:'#'
+                title: 'Sem4_Marksheet',
+                link: '#'
             },
             {
-                title:'Sem5_Marksheet',
-                link:'#'
+                title: 'Sem5_Marksheet',
+                link: '#'
             },
             {
-                title:'Sem6_Marksheet',
-                link:'#'
+                title: 'Sem6_Marksheet',
+                link: '#'
             },
         ]
     };
@@ -137,24 +147,24 @@ export default function StudentProfilePage() {
                     <div className="text-sm text-gray-600 flex gap-1 items-center">
                         <Github className="w-4 h-4" />
                         <a
-                                href={student.githubLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline text-sm cursor-pointer"
-                            >
-                                {student.github}
-                            </a>
+                            href={student.githubLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline text-sm cursor-pointer"
+                        >
+                            {student.github}
+                        </a>
                     </div>
                     <div className="text-sm text-gray-600 flex gap-1 items-center">
                         <Linkedin className="w-4 h-4" />
                         <a
-                                href={student.githubLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline text-sm flex items-center cursor-pointer"
-                            >
-                                {student.linkedIn}
-                            </a>
+                            href={student.githubLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline text-sm flex items-center cursor-pointer"
+                        >
+                            {student.linkedIn}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -171,6 +181,19 @@ export default function StudentProfilePage() {
                             </ul>
                         </div>
                     ))}
+                    <h2 className="text-lg font-bold mt-6 mb-3">Education</h2>
+                    {student.education.map((year, i) => (
+                        <div key={i}>
+                            <div className=' font-semibold w-[90%] flex justify-between mt-3'><h1>{year.institute}</h1><h1>{year.year}</h1></div>
+                            <div className=' font-light w-[90%] flex justify-between text-gray-600'><h1>{year.board}</h1><h1>{year.address}</h1></div>
+                            <p className="text-gray-600">{year.marks}</p>
+                        </div>
+                    ))}
+
+                    <div className='font-semibold w-[90%] flex justify-between mt-3'><h1>{student.college}</h1></div>
+                    <div className=' font-light w-[90%] flex justify-between text-gray-600'><h1>{student.college_address}</h1></div>
+                    <p className="text-gray-600">{student.CGPA}</p>
+
                     <h2 className="text-lg font-bold mt-6 mb-3">Other Interests</h2>
                     <p className="text-gray-600">{student.other_interests}</p>
                 </div>
@@ -196,10 +219,10 @@ export default function StudentProfilePage() {
                             </a>
                         </div>
                     ))}
-                    <a href='/student/profile/edit' className=" absolute bottom-10 right-10 border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all">
+                    <a href='/student/profile/edit' className=" absolute bottom-4 right-10 border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all">
                         Edit Profile
                     </a>
-                    <DownloadModal className='absolute bottom-10 ' documents={student.documents}/>
+                    <DownloadModal className='absolute bottom-4 ' documents={student.documents} />
                 </div>
 
             </div>

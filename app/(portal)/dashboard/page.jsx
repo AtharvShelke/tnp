@@ -48,6 +48,21 @@ export default function Dashboard() {
             Create New Booklet
           </div>
         </Link>
+        <Link href={"/students/new"}>
+          <div className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center ">
+            Create New Student
+          </div>
+        </Link>
+        <Link href={"/coordinators/new"}>
+          <div className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center ">
+            Create New Coordinator
+          </div>
+        </Link>
+        <Link href={"/departments/new"}>
+          <div className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center ">
+            Create New Department
+          </div>
+        </Link>
       </div>
       <div className='border grid grid-cols-3 gap-5 px-10 py-5'>
         {dashboard.map((item, i) => (

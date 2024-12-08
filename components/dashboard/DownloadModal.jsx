@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function DownloadModal(props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+
     return (
         <div className={props.className}>
             <button
@@ -12,7 +12,7 @@ export default function DownloadModal(props) {
                 onClick={() => setIsModalOpen(true)}
                 className=" border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all flex items-center gap-5"
             >
-                
+
                 Documents
             </button>
 
@@ -33,23 +33,22 @@ export default function DownloadModal(props) {
                             </button>
                         </div>
                         <div className="p-4 md:p-5">
-                            
+
                             <ul className="space-y-3">
-                                
-                                {props.documents.map((document, i)=>(
+
+                                {props.documents.map((document, i) => (
                                     <li key={i}>
-                                        
-                                    <a
-                                        href={document.link}
-                                        className="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow  "
-                                    >
-                                        <span className="flex-1 ms-3 whitespace-nowrap">{document.title}</span>
-                                        <Download/>
-                                    </a>
-                                </li>
+
+                                        <a
+                                            href={document.link} download className="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow  "
+                                        >
+                                            <span className="flex-1 ms-3 whitespace-nowrap">{document.title}</span>
+                                            <Download />
+                                        </a>
+                                    </li>
                                 ))}
                             </ul>
-                           
+
                         </div>
                     </div>
                 </div>

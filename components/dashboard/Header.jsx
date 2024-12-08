@@ -20,7 +20,7 @@ export default function Header() {
 
 
   return (
-    <div className="bg-gray-100 h-12 flex items-center justify-between pl-20 border-b border-slate-200">
+    <div className="bg-gray-100 h-12 flex items-center justify-between pl-20 border-b border-slate-200 ">
       <div className="flex justify-center gap-5 w-5/6">
         <h1 className="font-semibold text-2xl">Training and Placement  </h1>
       </div>

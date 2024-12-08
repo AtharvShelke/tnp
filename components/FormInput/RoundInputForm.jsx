@@ -35,7 +35,7 @@ export default function RoundInputForm({ register, errors }) {
           onChange={handleRoundsChange}
         />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         {fieldNames.map((fieldName, index) => (
           <TextInput
             key={fieldName}

@@ -4,6 +4,7 @@ import {
   CopyCheck,
   FileChartColumn,
   FileCheck2,
+  GraduationCap,
   LayoutDashboard,
   Presentation,
   UserCog,
@@ -53,6 +54,11 @@ export default function Sidebar() {
       name: "Booklets",
       icon: <FileChartColumn />,
       href: "/booklets",
+    },
+    {
+      name: "Departments",
+      icon: <GraduationCap />,
+      href: "/departments",
     },
   ];
 
