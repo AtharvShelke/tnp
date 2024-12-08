@@ -7,41 +7,58 @@ const prisma = new PrismaClient();
 export async function POST(req) {
     try {
         const data = await req.json();
+        console.log(data)
         const {
             referenceNumber,
             title,
-            departmentId,
+            driveDepartments,
             status,
             industryType,
+            ctc,
+            about,
+            bond,
             role,
             location,
             description,
             eligibility,
             link,
+            downloadlink,
             driveDate,
             lastDriveDate,
+            imageUrl,
             rounds,
+            
         } = data;
 
         const drive = await prisma.drive.create({
             data: {
                 referenceNumber,
                 title,
-                departmentId,
+                driveDepartments: {
+                    create: driveDepartments.map((round) => ({
+                        title: round.title,
+                    })),
+                },
                 status,
                 industryType,
+                ctc,
+                about,
+                bond,
                 role,
                 location,
                 description,
                 eligibility,
                 link,
-                driveDate: new Date(driveDate), // Ensure valid date conversion
-                lastDriveDate: new Date(lastDriveDate), // Ensure valid date conversion
+                downloadlink,
+                driveDate: new Date(driveDate), 
+                lastDriveDate: new Date(lastDriveDate), 
+                imageUrl,
                 rounds: {
                     create: rounds.map((round) => ({
                         title: round.title,
                     })),
                 },
+                
             },
         });
 
@@ -59,7 +76,8 @@ export const GET = async (request) => {
     try {
         const drives = await db.drive.findMany({
             include:{
-                rounds:true
+                rounds:true,
+                driveDepartments:true
             }
         });
         

@@ -15,26 +15,43 @@ import { useRouter } from "next/navigation";
 
 export default function NewDrive({ initialData = {}, isUpdate = false }) {
   const [departments, setDepartments] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState([]); // To store selected departments
+  const [dropdownOpen, setDropdownOpen] = useState(false); // Dropdown toggle state
+
   useEffect(() => {
     const fetchDepartments = async () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`, {
         method: "GET",
         headers: {
-          "Cache-Control": 'no-store',
-          'Pragma': 'no-cache',
+          "Cache-Control": "no-store",
+          "Pragma": "no-cache",
         },
-      })
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      const department = await response.json()
-      
+      const department = await response.json();
       setDepartments(department);
-
-    }
+    };
     fetchDepartments();
-
   }, []);
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleCheckboxChange = (department) => {
+    setSelectedDepartments((prev) => {
+      const exists = prev.some((dept) => dept.title === department.title);
+      if (exists) {
+
+        return prev.filter((dept) => dept.title !== department.title);
+      } else {
+
+        return [...prev, { title: department.title }];
+      }
+    });
+  };
 
 
   const {
@@ -48,62 +65,45 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
     defaultValues: initialData,
   });
   const [loading, setLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '')
-  const status = [
-    { id: 'Upcoming', title: "Upcoming" },
-    { id: "Active", title: "Active" },
-    { id: "Closed", title: "Closed" },
-  ];
+  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
+
+  
   const router = useRouter();
- 
-  const { fields, append, remove } = useFieldArray({ control, name: 'rounds' })
+
+  const { fields, append, remove } = useFieldArray({ control, name: "rounds" });
 
   const onSubmit = async (data) => {
     setLoading(true);
+    data.imageUrl = imageUrl;
+    data.driveDepartments = selectedDepartments;
+
 
     try {
-        // Explicitly structure the data object
-        const postData = {
-            referenceNumber: data.referenceNumber,
-            title: data.title,
-            departmentId: data.departmentId,
-            status: data.status,
-            industryType: data.industryType,
-            role: data.role,
-            location: data.location,
-            description: data.description,
-            eligibility: data.eligibility,
-            link: data.link,
-            rounds: data.rounds || [], 
-            driveDate: data.driveDate,
-            lastDriveDate: data.lastDriveDate,
-            imageUrl: imageUrl, 
-        };
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(postData),
-        });
+      setLoading(false);
 
-        setLoading(false);
+      if (response.ok) {
+        toast.success("Successfully added the drive");
 
-        if (response.ok) {
-            toast.success("Successfully added the drive");
-            reset();
-            router.push("/drives");
-        } else {
-            const errorText = await response.text(); // Get error response text
-            console.log(errorText);
-            toast.error(`Error: ${errorText || "An error occurred"}`);
-        }
+        reset();
+        router.push("/drives");
+      } else {
+        const errorText = await response.text();
+        console.log(errorText);
+        toast.error(`Error: ${errorText || "An error occurred"}`);
+      }
     } catch (error) {
-        setLoading(false);
-        toast.error(`Error: ${error.message}`);
+      setLoading(false);
+      toast.error(`Error: ${error.message}`);
     }
-};
+  };
 
   return (
     <div>
@@ -127,24 +127,62 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
             errors={errors}
             type="text"
           />
-          <SelectInput
-            register={register}
-            className="w-full"
-            name="departmentId"
-            label="Department"
-            options={departments}
-          />
-          <SelectInput
-            register={register}
-            className="w-full"
-            name="status"
-            label="Status"
-            options={status}
-          />
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700">Departments</label>
+            <button
+              type="button"
+              onClick={toggleDropdown}
+              className="w-full px-3 py-2 border rounded"
+            >
+              {selectedDepartments.length > 0
+                ? `${selectedDepartments.length} selected`
+                : "Select Departments"}
+            </button>
+            {dropdownOpen && (
+              <div className="absolute left-0 w-full bg-white border rounded shadow mt-1 z-10">
+                {departments.map((department) => (
+                  <label
+                    key={department.id}
+                    className="flex items-center p-2 hover:bg-gray-100"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedDepartments.some((dept) => dept.title === department.title)}
+                      onChange={() => handleCheckboxChange(department)}
+                      className="mr-2"
+                    />
+                    {department.title}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          
 
           <TextInput
             label="Industry Type"
             name="industryType"
+            register={register}
+            errors={errors}
+            type="text"
+          />
+          <TextInput
+            label="Job CTC"
+            name="ctc"
+            register={register}
+            errors={errors}
+            type="text"
+          />
+          <TextareaInput
+            label="About"
+            name="about"
+            register={register}
+            errors={errors}
+          />
+          <TextInput
+            label="Bond"
+            name="bond"
             register={register}
             errors={errors}
             type="text"
@@ -182,10 +220,17 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
             errors={errors}
             type="text"
           />
+          <TextInput
+            label="Download Link"
+            name="downloadlink"
+            register={register}
+            errors={errors}
+            type="text"
+          />
           <div className="">
-            <h3 className="text-lg sont-semibold text-gray-700">Rounds</h3>
+            <h3 className="text-lg font-semibold text-gray-700">Rounds</h3>
             {fields.map((field, index) => (
-              <div key={field.id}>
+              <div key={field.id} >
                 <TextInput
                   label="Round Name"
                   name={`rounds[${index}].title`}
@@ -196,7 +241,7 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
                 <button
                   type="button"
                   onClick={() => remove(index)}
-                  className="text-red-500 hover:text-red-700 mt-4"
+                  className="text-red-500 hover:text-red-700 mt-2 px-2 py-1 rounded text-sm border border-red-500 "
                 >
                   Remove
                 </button>
@@ -205,25 +250,29 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
             <button
               type="button"
               onClick={() => append()}
-              className="mt-2 mb-4 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="mt-2 mb-4 px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Add Round
             </button>
           </div>
         </div>
 
+        <div className="flex gap-5">
         <DateInput
           label={"Date of Drive"}
           name={"driveDate"}
           register={register}
           errors={errors}
+          className="w-1/2 mb-5"
         />
         <DateInput
           label={"Last Date of Drive"}
           name={"lastDriveDate"}
           register={register}
           errors={errors}
+          className="w-1/2 mb-5"
         />
+        </div>
         <ImageInput
           label="Drive Image"
           imageUrl={imageUrl}
@@ -231,30 +280,8 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
           endpoint="imageUploader"
         />
 
-
-        <SubmitButton isLoading={loading} title={'Drive'} />
+        <SubmitButton isLoading={loading} title={"Drive"} />
       </form>
     </div>
   );
 }
-{/* <RoundInputForm
-          register={register}
-          errors={errors}
-        />
-        <div className="my-5">
-        <label htmlFor="numRounds" className="">Number of rounds:</label>
-        <input type="text" name="numRounds" placeholder="Number of Rounds" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 "
-        onChange={handleChange}/>
-        {Array.from({ length: numR }, (_, index) => (
-          <div key={index} className="my-3">
-           <TextInput
-            label={`Round ${index+1}`}
-            name={`round[${index}].title`}
-            register={register}
-            errors={errors}
-            type="text"
-          />
-           
-          </div>
-        ))}
-        </div> */}

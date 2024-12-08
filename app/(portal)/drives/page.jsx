@@ -49,7 +49,7 @@ export default function DrivesPage() {
           const driveDate = formDateFromString(drive.driveDate) 
           const lastDriveDate = formDateFromString(drive.lastDriveDate) 
 
-          return (<Drive key={i} title={drive.title} img={drive.img || '/tcs.png'} date={driveDate} last_date={lastDriveDate} />)
+          return (<Drive key={i} id={drive.id} title={drive.title} img={drive.imageUrl || '/tcs.png'} date={driveDate} last_date={lastDriveDate} />)
         }
 
         )}

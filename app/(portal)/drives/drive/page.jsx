@@ -1,7 +1,11 @@
+
 import DownloadModal from '@/components/dashboard/DownloadModal';
 import { Github, GraduationCap, Landmark, Linkedin, Mail, Phone } from 'lucide-react';
 
-export default function DrivePage() {
+
+export default function DrivePage({params}) {
+    
+    console.log(params)
     const drive = {
         id: '213',
         title: 'TCS 2025',

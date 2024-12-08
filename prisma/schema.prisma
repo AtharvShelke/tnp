@@ -18,7 +18,6 @@ model Department {
   title    String
   Booklet  Booklet[]
   Activity Activity[]
-  Drive    Drive[]
 }
 
 model Booklet {
@@ -43,27 +42,38 @@ model Activity {
 }
 
 model Drive {
-  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
   referenceNumber String
   title           String
-  department      Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  departmentId    String     @db.ObjectId
-  status          String
-  industryType    String
-  role            String
-  location        String
-  description     String
-  eligibility     String
-  link            String
-  rounds          Round[]
-  imageUrl        String?
-  driveDate       DateTime
-  lastDriveDate   DateTime
+
+ 
+  industryType     String
+  ctc              String
+  about            String
+  bond             String
+  role             String
+  location         String
+  description      String
+  eligibility      String
+  link             String
+  rounds           Round[]
+  imageUrl         String?
+  driveDate        DateTime
+  lastDriveDate    DateTime
+  downloadlink     String?
+  driveDepartments DriveDepartments[]
 }
 
 model Round {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  drive     Drive  @relation(fields: [driveId], references: [id])
-  driveId   String @db.ObjectId
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  title   String
+  drive   Drive  @relation(fields: [driveId], references: [id], onDelete: Cascade)
+  driveId String @db.ObjectId
+}
+
+model DriveDepartments {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  title   String
+  drive   Drive  @relation(fields: [driveId], references: [id], onDelete: Cascade)
+  driveId String @db.ObjectId
 }
