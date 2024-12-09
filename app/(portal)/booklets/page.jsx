@@ -1,22 +1,42 @@
-import Drive from '@/components/dashboard/Drive'
+'use client'
+import Booklet from '@/components/dashboard/Booklet'
 import NewHeader from '@/components/dashboard/NewHeader'
 import { Plus } from 'lucide-react'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 export default function BookletsPage() {
-  const drives = [
-    { title: 'TCS Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-    { title: 'Wipro Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-    { title: 'Infosys Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-    { title: 'Tech Mahindra Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-    { title: 'Accenture Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-  ]
+  const [booklets, setBooklets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchBooklets = async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/booklets`, {
+        method: "GET",
+        headers: {
+          "Cache-Control": 'no-store',
+          'Pragma': 'no-cache',
+        },
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json()
+
+      setBooklets(data);
+
+    }
+    fetchBooklets();
+    setLoading(false)
+  }, []);
+
+
   return (
     <div>
       <NewHeader title={"Booklet"} link={'/booklets/new'}/>
       <div className="px-16 grid grid-cols-2 gap-y-6 sm:grid-cols-4">
-        {drives.map((drive, i) => (
-          <Drive key={i} title={drive.title} img={drive.img} date={drive.date} last_date={drive.last_date} />
+        {booklets.map((drive, i) => (
+          <Booklet key={i} id={drive.id} title={drive.title} img={drive.imageUrl||'/logo.jpg'}  />
         ))}
       </div>
     </div>

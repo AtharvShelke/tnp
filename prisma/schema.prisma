@@ -14,18 +14,16 @@ datasource db {
 }
 
 model Department {
-  id      String    @id @default(auto()) @map("_id") @db.ObjectId
-  title   String
-  Booklet Booklet[]
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
 }
 
 model Booklet {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  title        String
-  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  departmentId String     @db.ObjectId
-  imageUrl     String
-  pdfUrl       String
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  title              String
+  bookletDepartments BookletDepartments[]
+  imageUrl           String?
+  pdfUrl             String?
 }
 
 model Activity {
@@ -81,4 +79,12 @@ model ActivityDepartments {
 
   Activity   Activity? @relation(fields: [activityId], references: [id])
   activityId String?   @db.ObjectId
+}
+
+model BookletDepartments {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+
+  Booklet   Booklet? @relation(fields: [bookletId], references: [id])
+  bookletId String?  @db.ObjectId
 }

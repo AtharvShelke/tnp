@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FormHeader from "@/components/dashboard/FormHeader";
 
 import SelectInput from "@/components/FormInput/SelectInput";
@@ -10,6 +10,8 @@ import DateInput from "@/components/FormInput/DateInput";
 import SubmitButton from "@/components/FormInput/SubmitButton";
 import ImageInput from "@/components/FormInput/ImageInput";
 import PdfInput from "@/components/FormInput/PdfInput";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function NewBooklet({ initialData = {}, isUpdate = false }) {
   const {
@@ -21,41 +23,55 @@ export default function NewBooklet({ initialData = {}, isUpdate = false }) {
   } = useForm({
     defaultValues: initialData,
   });
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '')
   const [pdfUrl, setpdfUrl] = useState(initialData?.pdfUrl || '')
-  const [loading, setLoading] = useState(false);
-  const BookletStatus = [
-    { id: 1, title: "Upcoming" },
-    { id: 2, title: "Active" },
-    { id: 3, title: "Closed" },
-  ];
 
-  const branch = [
-    { id: 1, title: "Computer Science Engineering" },
-    { id: 2, title: "Information Technology" },
-    { id: 3, title: "Mechanical Engineering" },
-    { id: 4, title: "Civil Engineering" },
-    { id: 5, title: "Electrical Engineering" },
-    { id: 6, title: "Electronics and Communication Engineering" },
-    { id: 7, title: "Aerospace Engineering" },
-    { id: 8, title: "Automobile Engineering" },
-    { id: 9, title: "Chemical Engineering" },
-    { id: 10, title: "Biomedical Engineering" },
-    { id: 11, title: "Biotechnology Engineering" },
-    { id: 12, title: "Environmental Engineering" },
-    { id: 13, title: "Industrial Engineering" },
-    { id: 14, title: "Mining Engineering" },
-    { id: 15, title: "Petroleum Engineering" },
-    { id: 16, title: "Production Engineering" },
-  ];
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`, {
+        method: "GET",
+        headers: {
+          "Cache-Control": "no-store",
+          "Pragma": "no-cache",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const department = await response.json();
+      setDepartments(department);
+    };
+    fetchDepartments();
+  }, []);
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+  const handleCheckboxChange = (department) => {
+    setSelectedDepartments((prev) => {
+      const exists = prev.some((dept) => dept.title === department.title);
+      if (exists) {
 
+        return prev.filter((dept) => dept.title !== department.title);
+      } else {
+
+        return [...prev, { title: department.title }];
+      }
+    });
+  };
+
+  const router = useRouter()
   const onSubmit = async (data) => {
     data.imageUrl = imageUrl;
     data.pdfUrl = pdfUrl;
+    data.bookletDepartments = selectedDepartments;
     setLoading(true);
 
     try {
-      
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/booklets`, {
         method: 'POST',
         headers: {
@@ -65,12 +81,17 @@ export default function NewBooklet({ initialData = {}, isUpdate = false }) {
       })
       if (response.ok) {
         setLoading(false)
+        toast.success("Successfully added the booklet")
         reset();
+        router.push('/booklets')
+      } else {
+        const errorText = await response.text();
+        console.log(errorText);
+        toast.error(`Error: ${errorText || "An error occurred"}`);
       }
-      
     } catch (error) {
       setLoading(false);
-      console.log(error)
+      toast.error(`Error: ${error.message}`);
     }
   };
 
@@ -83,7 +104,7 @@ export default function NewBooklet({ initialData = {}, isUpdate = false }) {
         className="w-full max-w-3xl p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 mx-auto my-5"
       >
         <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
-         
+
           <TextInput
             label="Title"
             name="title"
@@ -91,36 +112,59 @@ export default function NewBooklet({ initialData = {}, isUpdate = false }) {
             errors={errors}
             type="text"
           />
-         
-          <SelectInput
-            register={register}
-            className="w-full"
-            name="branchId"
-            label="Select the branch"
-            options={branch}
-          />
-          
-          <ImageInput
-          label="Booklet Image"
-          imageUrl={imageUrl}
-          setImageUrl={setImageUrl}
-          endpoint="imageUploader"
-        />
-         
-          <PdfInput
-          label="Booklet pdf"
-          pdfUrl={pdfUrl}
-          setpdfUrl={setpdfUrl}
-          endpoint="pdfUploader"
-        />
-         
-          
-        </div>
-        
-        
-        
 
-        <SubmitButton isLoading={loading} title={'Booklet'}/>
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700">Departments</label>
+            <button
+              type="button"
+              onClick={toggleDropdown}
+              className="w-full px-3 py-2 border rounded"
+            >
+              {selectedDepartments.length > 0
+                ? `${selectedDepartments.length} selected`
+                : "Select Departments"}
+            </button>
+            {dropdownOpen && (
+              <div className="absolute left-0 w-full bg-white border rounded shadow mt-1 z-10">
+                {departments.map((department) => (
+                  <label
+                    key={department.id}
+                    className="flex items-center p-2 hover:bg-gray-100"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedDepartments.some((dept) => dept.title === department.title)}
+                      onChange={() => handleCheckboxChange(department)}
+                      className="mr-2"
+                    />
+                    {department.title}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <ImageInput
+            label="Booklet Image"
+            imageUrl={imageUrl}
+            setImageUrl={setImageUrl}
+            endpoint="imageUploader"
+          />
+
+          <PdfInput
+            label="Booklet pdf"
+            pdfUrl={pdfUrl}
+            setpdfUrl={setpdfUrl}
+            endpoint="pdfUploader"
+          />
+
+
+        </div>
+
+
+
+
+        <SubmitButton isLoading={loading} title={'Booklet'} />
       </form>
     </div>
   );

@@ -21,46 +21,100 @@ export default function Sidebar() {
 
   const sidebarLinksAdmin = [
     {
-      name: "Dashboard",
+      name: 'Dashboard',
       icon: <LayoutDashboard />,
-      href: "/dashboard",
+      href: '/dashboard'
     },
     {
-      name: "Profile",
+      name: 'Profile',
       icon: <CircleUserRound />,
-      href: "/profile",
+      href: '/profile'
     },
     {
-      name: "Drives",
+      name: 'Drives',
       icon: <CopyCheck />,
-      href: "/drives",
+      href: '/drives'
     },
     {
-      name: "Activties",
+      name: 'Activties',
       icon: <Presentation />,
-      href: "/activities",
+      href: '/activities'
     },
     {
-      name: "Students",
+      name: 'Students',
       icon: <Users />,
-      href: "/students",
+      href: '/students'
     },
     {
-      name: "Co-ordinators",
+      name: 'Co-ordinators',
       icon: <UserCog />,
-      href: "/coordinators",
+      href: '/coordinators'
     },
     {
-      name: "Booklets",
+      name: 'Booklets',
       icon: <FileChartColumn />,
-      href: "/booklets",
+      href: '/booklets'
+    },
+  ]
+  const sidebarLinksStudent = [
+    {
+      name: 'Profile',
+      icon: <CircleUserRound />,
+      href: '/student/profile'
     },
     {
-      name: "Departments",
-      icon: <GraduationCap />,
-      href: "/departments",
+      name: 'Drives',
+      icon: <CopyCheck />,
+      href: '/drives'
     },
-  ];
+    {
+      name: 'Activities',
+      icon: <Presentation />,
+      href: '/activities'
+    },
+    {
+      name: 'My Applications',
+      icon: <LayoutDashboard />,
+      href: '/student/applications'
+    },
+    {
+      name: 'Booklets',
+      icon: <FileChartColumn />,
+      href: '/booklets'
+    },
+
+  ]
+  const sidebarLinksCoordinator = [
+    {
+      name: 'Profile',
+      icon: <CircleUserRound />,
+      href: '/profile'
+    },
+    {
+      name: 'Drives',
+      icon: <CopyCheck />,
+      href: '/drives'
+    },
+    {
+      name: 'Activities',
+      icon: <Presentation />,
+      href: '/activities'
+    },
+    {
+      name: 'Students',
+      icon: <Users />,
+      href: '/students'
+    },
+    {
+      name: 'Approvals',
+      icon: <FileCheck2 />
+    },
+    {
+      name: 'Booklets',
+      icon: <FileChartColumn />,
+      href: '/booklets'
+    },
+  ]
 
   return (
     <>
@@ -74,9 +128,8 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:flex flex-col w-64 h-screen bg-gray-900 border-r border-gray-700 px-4 py-8 z-40 transform transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
+        className={`fixed md:flex flex-col w-64 h-screen bg-gray-900 border-r border-gray-700 px-4 py-8 z-40 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } md:translate-x-0`}
       >
         <div className="flex flex-col items-center mt-6 -mx-2">
           <img
@@ -94,13 +147,12 @@ export default function Sidebar() {
 
         <div className="flex flex-col justify-between flex-1 mt-6">
           <nav>
-            {sidebarLinksAdmin.map((link, i) => (
+            {sidebarLinksStudent.map((link, i) => (
               <a
-                className={`flex items-center px-4 py-2 mt-5 transition-colors duration-300 transform rounded-lg text-gray-400 hover:bg-gray-800 hover:text-gray-200 ${
-                  path.includes(link.href)
+                className={`flex items-center px-4 py-2 mt-5 transition-colors duration-300 transform rounded-lg text-gray-400 hover:bg-gray-800 hover:text-gray-200 ${path.includes(link.href)
                     ? "bg-gray-800 text-gray-200"
                     : ""
-                }`}
+                  }`}
                 href={link.href}
                 key={i}
               >

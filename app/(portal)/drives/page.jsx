@@ -32,19 +32,21 @@ export default function DrivesPage() {
     fetchdrives();
     setLoading(false)
   }, []);
-  
+
 
   return (
     <div>
       <NewHeader title={"Drives"} link={'/drives/new'} />
       <div className="px-16 grid grid-cols-4 gap-y-6">
         {drives.map((drive, i) => {
-         
-         
-          const driveDate = formDateFromString(drive.driveDate) 
-          const lastDriveDate = formDateFromString(drive.lastDriveDate) 
 
-          return (<Drive key={i} id={drive.id} title={drive.title} img={drive.imageUrl || '/tcs.png'} date={driveDate} last_date={lastDriveDate} />)
+
+          const driveDate = formDateFromString(drive.driveDate)
+          const lastDriveDate = formDateFromString(drive.lastDriveDate)
+
+          return (
+            <Drive key={i} id={drive.id} title={drive.title} img={drive.imageUrl || '/logo.jpg'} date={driveDate} last_date={lastDriveDate} />
+          )
         }
 
         )}
