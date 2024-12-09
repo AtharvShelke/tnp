@@ -1,15 +1,10 @@
 'use client'
 import Drive from "@/components/dashboard/Drive";
 import NewHeader from "@/components/dashboard/NewHeader";
+import formDateFromString from "@/lib/formDateFromString";
 import { useEffect, useState } from "react";
 
-const formDateFromString = (string) => {
-  const date = new Date(string);
 
-  const formattedDate = date.toISOString().split('T')[0];
-
-   return formattedDate;
-} 
 
 
 export default function DrivesPage() {

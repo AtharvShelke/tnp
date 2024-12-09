@@ -1,22 +1,44 @@
+'use client'
+import Activity from '@/components/dashboard/Activity'
 import Drive from '@/components/dashboard/Drive'
 import NewHeader from '@/components/dashboard/NewHeader'
-import React from 'react'
+import formDateFromString from '@/lib/formDateFromString'
+import React, { useEffect, useState } from 'react'
 
 export default function page() {
-  const drives = [
-    { title: 'TCS Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-    { title: 'Wipro Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-    { title: 'Infosys Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-    { title: 'Tech Mahindra Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-    { title: 'Accenture Drive 2025', img: '/tcs.png', date: "Oct. 16, 2024", last_date: "Oct. 30, 2024" },
-  ]
+  const [drives, setdrives] = useState([])
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchdrives = async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/activities`, {
+        method: "GET",
+        headers: {
+          "Cache-Control": 'no-store',
+          'Pragma': 'no-cache',
+        },
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json()
+
+      setdrives(data);
+
+    }
+    fetchdrives();
+    setLoading(false)
+  }, []);
+
   return (
     <div>
-      <NewHeader title={"Activities"} link={'/activities/new'}/>
+      <NewHeader title={"Activities"} link={'/activities/new'} />
       <div className="px-16 grid grid-cols-4 gap-y-6">
-        {drives.map((drive, i) => (
-          <Drive key={i} title={drive.title} img={drive.img} date={drive.date} last_date={drive.last_date} />
-        ))}
+        {drives.map((drive, i) => {
+          const formattedDate = formDateFromString(drive.date)
+          return (
+            <Activity key={i} title={drive.title} img={drive.imageUrl || '/logo.jpg'} date={formattedDate} id={drive.id} />
+          )
+        })}
       </div>
     </div>
   )

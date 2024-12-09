@@ -1,8 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import FormHeader from "@/components/dashboard/FormHeader";
-import RoundInputForm from "@/components/FormInput/RoundInputForm";
-import SelectInput from "@/components/FormInput/SelectInput";
+
 import TextareaInput from "@/components/FormInput/TextareaInput";
 import TextInput from "@/components/FormInput/TextInput";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -15,8 +14,8 @@ import { useRouter } from "next/navigation";
 
 export default function NewDrive({ initialData = {}, isUpdate = false }) {
   const [departments, setDepartments] = useState([]);
-  const [selectedDepartments, setSelectedDepartments] = useState([]); // To store selected departments
-  const [dropdownOpen, setDropdownOpen] = useState(false); // Dropdown toggle state
+  const [selectedDepartments, setSelectedDepartments] = useState([]); 
+  const [dropdownOpen, setDropdownOpen] = useState(false); 
 
   useEffect(() => {
     const fetchDepartments = async () => {
