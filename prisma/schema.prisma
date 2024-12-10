@@ -14,8 +14,12 @@ datasource db {
 }
 
 model Department {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  title String
+  id      String    @id @default(auto()) @map("_id") @db.ObjectId
+  title   String
+  Student Student[]
+
+  coordinatorId String?       @db.ObjectId
+  Coordinator   Coordinator[]
 }
 
 model Booklet {
@@ -87,4 +91,124 @@ model BookletDepartments {
 
   Booklet   Booklet? @relation(fields: [bookletId], references: [id])
   bookletId String?  @db.ObjectId
+}
+
+enum UserRole {
+  ADMIN
+  COORDINATOR
+  STUDENT
+  USER
+}
+
+model User {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  email       String        @unique
+  name        String
+  password    String
+  pfp         String        @default("/logo.jpg")
+  role        UserRole      @default(USER)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Student     Student[]
+  Coordinator Coordinator[]
+  Admin       Admin[]
+}
+
+model Student {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  user              User    @relation(fields: [userId], references: [id])
+  userId            String  @db.ObjectId
+  isProfileComplete Boolean
+  PRN               String
+
+  department     Department       @relation(fields: [departmentId], references: [id])
+  departmentId   String           @db.ObjectId
+  dob            DateTime
+  gender         String
+  phone          String
+  address        String
+  language       String[]
+  passOutYear    Int
+  education      Education[]
+  technicalSkill TechnicalSkill[]
+  project        Project[]
+  cgpa           Float
+  otherInterests String[]
+  about          String
+  githubLink     String
+  linkedIn       String
+  liveBack       String
+  deadBack       String
+  placed         String           @default("No")
+}
+
+model Education {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  address   String
+  marks     String
+  institute String
+  year      Int
+  Student   Student? @relation(fields: [studentId], references: [id])
+  studentId String?  @db.ObjectId
+}
+
+model TechnicalSkill {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  domain    String
+  name      String
+  Student   Student? @relation(fields: [studentId], references: [id])
+  studentId String?  @db.ObjectId
+}
+
+model Project {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  type         String
+  description  String
+  technologies String[]
+  role         String
+  githubLink   String
+  Student      Student? @relation(fields: [studentId], references: [id])
+  studentId    String?  @db.ObjectId
+}
+
+model Coordinator {
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  user         User        @relation(fields: [userId], references: [id])
+  userId       String      @db.ObjectId
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?     @db.ObjectId
+
+  phone               String
+  isProfileComplete   Boolean
+  pfp                 String?
+  CoordinatorApproval CoordinatorApproval[]
+}
+
+model Admin {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+
+  isProfileComplete   Boolean
+  coordinatorApproval CoordinatorApproval[]
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model CoordinatorApproval {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  coordinator   Coordinator?   @relation(fields: [coordinatorId], references: [id])
+  coordinatorId String?        @db.ObjectId
+  status        ApprovalStatus @default(PENDING)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  Admin         Admin?         @relation(fields: [adminId], references: [id])
+  adminId       String?        @db.ObjectId
 }
