@@ -36,6 +36,7 @@ export default function Sidebar() {
       ]);
     } else if (session?.user?.role === "COORDINATOR") {
       setLinks([
+        { name: "Dashboard", icon: <LayoutDashboard />, href: "/dashboard" },
         { name: "Profile", icon: <CircleUserRound />, href: "/profile" },
         { name: "Drives", icon: <CopyCheck />, href: "/drives" },
         { name: "Activities", icon: <Presentation />, href: "/activities" },

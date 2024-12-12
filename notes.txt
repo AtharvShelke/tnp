@@ -1,0 +1,1 @@
+1. instead of defining a default image in db, change the way it is shandled in uer register form

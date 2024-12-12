@@ -1,40 +1,107 @@
+'use client';
+import CoordinatorReq from '@/components/dashboard/CoordinatorReq';
 import CoordinatorTable from '@/components/dashboard/CoordinatorTable';
-import DataTable from '@/components/dashboard/StudentTable'
-
+import { useEffect, useState } from 'react';
 
 export default function AllCoordinatorsPage() {
-  const columns = ['Coordinator ID','Name', 'Phone no.', 'Email','Institute','Branch']
-  
+  const [req, setReq] = useState([]);
+  const [userData, setUserData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const columns = ['coordinatorId', 'name', 'phoneNo', 'email', 'branch'];
+  const reqColumns = ['id', 'name', 'email', 'status'];
+
   const coordinators = [
     {
-      Coordinator_ID: 'C001',
-      Name: 'Rajesh Kumar',
-      Phone_no: '9876543210',
-      Email: 'rajesh.kumar@example.com',
-      Institute: 'ABC Institute of Technology',
-      Branch: 'Computer Science'
+      coordinatorId: 'C001',
+      name: 'Rajesh Kumar',
+      phoneNo: '9876543210',
+      email: 'rajesh.kumar@example.com',
+      institute: 'ABC Institute of Technology',
+      branch: 'Computer Science',
     },
     {
-      Coordinator_ID: 'C002',
-      Name: 'Priya Sharma',
-      Phone_no: '8765432109',
-      Email: 'priya.sharma@example.com',
-      Institute: 'XYZ College of Engineering',
-      Branch: 'Electronics'
+      coordinatorId: 'C002',
+      name: 'Priya Sharma',
+      phoneNo: '8765432109',
+      email: 'priya.sharma@example.com',
+      institute: 'XYZ College of Engineering',
+      branch: 'Electronics',
     },
     {
-      Coordinator_ID: 'C003',
-      Name: 'Anil Mehta',
-      Phone_no: '7654321098',
-      Email: 'anil.mehta@example.com',
-      Institute: 'PQR Engineering University',
-      Branch: 'Mechanical'
-    }
+      coordinatorId: 'C003',
+      name: 'Anil Mehta',
+      phoneNo: '7654321098',
+      email: 'anil.mehta@example.com',
+      institute: 'PQR Engineering University',
+      branch: 'Mechanical',
+    },
   ];
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        // Fetch coordinator approval requests
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinatorApproval`, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-store',
+            Pragma: 'no-cache',
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const requests = await response.json();
+        setReq(requests);
+
+        // Fetch user data for all requests
+        if (requests.length > 0) {
+          const userPromises = requests.map(async (item) => {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${item.userId}`, {
+              method: 'GET',
+              headers: {
+                'Cache-Control': 'no-store',
+                Pragma: 'no-cache',
+              },
+            });
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const user = await response.json();
+            return { ...user, status: item.status }; 
+          });
+
+          const usersWithStatus = await Promise.all(userPromises);
+          setUserData(usersWithStatus);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err.message);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-500">Error: {error}</p>;
+  }
+
   return (
-    <div className='py-12 px-10'>
-      <h1 className='font-bold text-xl mb-5'>All Coordinators</h1>
-      <CoordinatorTable columns={columns} data={coordinators}/>
+    <div className="py-12 px-10">
+     
+      <h1 className="font-bold text-xl mb-5">Coordinator Requests</h1>
+      <CoordinatorReq columns={reqColumns} data={userData} />
+      <h1 className="font-bold text-xl my-5">All Coordinators</h1>
+      <CoordinatorTable columns={columns} data={coordinators} />
     </div>
-  )
+  );
 }
