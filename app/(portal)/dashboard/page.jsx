@@ -101,8 +101,6 @@ export default function Dashboard() {
         );
     }
 
-    return <div>
-        Unauthorized: You do not have access to this dashboard.
-        
-    </div>;
+    router.push('/drives')
+    return null
 }

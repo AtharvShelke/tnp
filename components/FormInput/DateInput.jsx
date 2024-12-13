@@ -6,7 +6,7 @@ export default function DateInput({
   isRequired = true,
   register,
   errors,
-  className,
+  className = "sm:col-span-2",
 }) {
   const errorMessage = errors?.[name]?.message; // Directly access error message if available
 

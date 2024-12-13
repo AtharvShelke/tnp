@@ -81,7 +81,7 @@ model ActivityDepartments {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
   title String
 
-  Activity   Activity? @relation(fields: [activityId], references: [id])
+  Activity   Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
   activityId String?   @db.ObjectId
 }
 
@@ -89,7 +89,7 @@ model BookletDepartments {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
   title String
 
-  Booklet   Booklet? @relation(fields: [bookletId], references: [id])
+  Booklet   Booklet? @relation(fields: [bookletId], references: [id], onDelete: Cascade)
   bookletId String?  @db.ObjectId
 }
 
@@ -117,48 +117,59 @@ model User {
 
 model Student {
   id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  user              User    @relation(fields: [userId], references: [id])
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String  @db.ObjectId
   isProfileComplete Boolean
   PRN               String
-
-  department     Department       @relation(fields: [departmentId], references: [id])
-  departmentId   String           @db.ObjectId
-  dob            DateTime
-  gender         String
-  phone          String
-  address        String
-  language       String[]
-  passOutYear    Int
-  education      Education[]
-  technicalSkill TechnicalSkill[]
-  project        Project[]
-  cgpa           Float
-  otherInterests String[]
-  about          String
-  githubLink     String
-  linkedIn       String
-  liveBack       String
-  deadBack       String
-  placed         String           @default("No")
+  department       Department         @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  departmentId     String             @db.ObjectId
+  dob              DateTime
+  gender           String
+  phone            String
+  address          String
+  language         String[]
+  passOutYear      String
+  education        Education[]
+  technicalSkill   TechnicalSkill[]
+  project          Project[]
+  cgpa             String
+  otherInterests   String[]
+  about            String
+  githubLink       String
+  linkedIn         String
+  liveBack         String?            @default("0")
+  deadBack         String?            @default("0")
+  placed           Boolean            @default(false)
+  studentDocuments StudentDocuments[]
 }
 
 model Education {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   address   String
   marks     String
   institute String
-  year      Int
-  Student   Student? @relation(fields: [studentId], references: [id])
+  year      String
+
+  Student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
   studentId String?  @db.ObjectId
 }
 
 model TechnicalSkill {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  domain    String
-  name      String
-  Student   Student? @relation(fields: [studentId], references: [id])
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  domain String
+  name   String[]
+
+  Student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String?  @db.ObjectId
+}
+
+model StudentDocuments {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  link  String
+
+  Student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
   studentId String?  @db.ObjectId
 }
 
@@ -170,25 +181,25 @@ model Project {
   technologies String[]
   role         String
   githubLink   String
-  Student      Student? @relation(fields: [studentId], references: [id])
-  studentId    String?  @db.ObjectId
+
+  Student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String?  @db.ObjectId
 }
 
 model Coordinator {
   id           String      @id @default(auto()) @map("_id") @db.ObjectId
-  user         User        @relation(fields: [userId], references: [id])
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String      @unique @db.ObjectId
-  department   Department? @relation(fields: [departmentId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   departmentId String?     @db.ObjectId
 
   phone             String
   isProfileComplete Boolean
- 
 }
 
 model Admin {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique @db.ObjectId
 
   isProfileComplete Boolean @default(true)
@@ -202,7 +213,7 @@ enum ApprovalStatus {
 
 model CoordinatorApproval {
   id        String         @id @default(auto()) @map("_id") @db.ObjectId
-  user      User           @relation(fields: [userId], references: [id])
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String         @unique @db.ObjectId
   status    ApprovalStatus @default(PENDING)
   createdAt DateTime       @default(now())
