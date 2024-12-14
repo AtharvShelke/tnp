@@ -116,31 +116,31 @@ model User {
 }
 
 model Student {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            String  @db.ObjectId
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String             @unique @db.ObjectId
   isProfileComplete Boolean
   PRN               String
-  department       Department         @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  departmentId     String             @db.ObjectId
-  dob              DateTime
-  gender           String
-  phone            String
-  address          String
-  language         String[]
-  passOutYear      String
-  education        Education[]
-  technicalSkill   TechnicalSkill[]
-  project          Project[]
-  cgpa             String
-  otherInterests   String[]
-  about            String
-  githubLink       String
-  linkedIn         String
-  liveBack         String?            @default("0")
-  deadBack         String?            @default("0")
-  placed           Boolean            @default(false)
-  studentDocuments StudentDocuments[]
+  department        Department         @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  departmentId      String             @db.ObjectId
+  dob               DateTime
+  gender            String
+  phone             String
+  address           String
+  language          String[]
+  passOutYear       String
+  education         Education[]
+  technicalSkill    TechnicalSkill[]
+  project           Project[]
+  cgpa              String
+  otherInterests    String[]
+  about             String
+  githubLink        String
+  linkedIn          String
+  liveBack          String?            @default("0")
+  deadBack          String?            @default("0")
+  placed            Boolean            @default(false)
+  studentDocuments  StudentDocuments[]
 }
 
 model Education {

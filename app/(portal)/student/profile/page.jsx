@@ -1,139 +1,127 @@
+'use client'
 import DownloadModal from '@/components/dashboard/DownloadModal';
 import { Github, GraduationCap, Landmark, Linkedin, Mail, Phone } from 'lucide-react';
-import React from 'react';
+import { useSession } from 'next-auth/react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function StudentProfilePage() {
-    const student = {
-        FIRST_NAME: 'John',
-        LAST_NAME: 'Doe',
-        profile:
-            'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
-        EMAIL: 'johndoe@gmail.com',
-        department: 'Computer Science',
-        Pass_out_Year: 2026,
-        education: [
-            {
-                board: 'SSC',
-                address: 'Chh. Sambhajinagar',
-                institute: 'XYZ Public School',
-                marks: 90,
-                year: 2020,
-            },
-            {
-                board: 'HSC',
-                institute: 'ABC College',
-                marks: 90,
-                year: 2022,
-                address: 'Chh. Sambhajinagar',
-            },
+    const [userdata, setUserdata] = useState([]);
+    const [studentdata, setStudentdata] = useState([]);
+    const [department, setDepartment] = useState([]);
 
-        ],
+    const { data: session, status } = useSession();
+    const currentUserId = session?.user?.id
+
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${currentUserId}`, {
+                    method: "GET",
+                    headers: {
+                        "Cache-Control": 'no-store',
+                        "Pragma": 'no-cache',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
+                }
+
+                const text = await response.text(); // Read as text first
+                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
+                setUserdata(data || []);
+            } catch (error) {
+                console.error("Failed to fetch user details:", error.message);
+                toast.error('Failed to fetch user details');
+            }
+        };
+        const fetchStudentDetails = async () => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/${currentUserId}`, {
+                    method: "GET",
+                    headers: {
+                        "Cache-Control": 'no-store',
+                        "Pragma": 'no-cache',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
+                }
+
+                const text = await response.text(); // Read as text first
+                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
+                setStudentdata(data || []);
+            } catch (error) {
+                console.error("Failed to fetch user details:", error.message);
+                toast.error('Failed to fetch user details');
+            }
+        };
 
 
-        college: 'JNEC',
-        college_address: 'Chh. Sambhajinagar',
-        CGPA: 9.0,
+        if (currentUserId) {
+            fetchUserDetails();
+            fetchStudentDetails();
 
-        other_interests: 'Hiking, Riding, Reading',
-        technicalSkills: [
-            {
-                category: 'Programming Languages',
-                skills: ['Java', 'Python', 'C++', 'JavaScript'],
-            },
-            {
-                category: 'Web Development',
-                skills: ['HTML', 'CSS', 'React.js', 'Node.js', 'Express.js'],
-            },
-            {
-                category: 'Database Management',
-                skills: ['MySQL', 'MongoDB', 'PostgreSQL'],
-            },
-        ],
-        about:
-            'Dedicated and results-driven final-year Computer Science Engineering student with a CGPA of 9.0. Proficient in programming languages (Java, Python, JavaScript), web development (React.js, Node.js), and database management (MySQL, MongoDB).',
-        projects: [
-            {
-                type: 'Major',
-                name: 'E-commerce Platform',
-                description:
-                    'Developed a full-stack e-commerce platform with user authentication, product management, and payment gateway integration.',
-                technologies: ['React.js', 'Node.js', 'MongoDB', 'Stripe API'],
-                role: 'Full Stack Developer',
-                githubLink: 'https://github.com/username/ecommerce-platform',
-            },
-            {
-                type: 'Minor',
-                name: 'Weather App',
-                description:
-                    'Built a web application that provides real-time weather updates using the OpenWeather API.',
-                technologies: ['HTML', 'CSS', 'JavaScript', 'Node.js'],
-                role: 'Full Stack Developer',
-                githubLink: 'https://github.com/username/weather-app',
-            },
-        ],
-        phone: 8275334604,
-        github: 'github.com/johndoe',
-        linkedIn: 'linkedIn.com/johndoe',
-        documents: [
-            {
-                title: 'X_Marksheet',
-                link: '#'
-            },
-            {
-                title: 'XII_Marksheet',
-                link: '#'
-            },
-            {
-                title: 'Sem1_Marksheet',
-                link: '#'
-            },
-            {
-                title: 'Sem2_Marksheet',
-                link: '#'
-            },
-            {
-                title: 'Sem3_Marksheet',
-                link: '#'
-            },
-            {
-                title: 'Sem4_Marksheet',
-                link: '#'
-            },
-            {
-                title: 'Sem5_Marksheet',
-                link: '#'
-            },
-            {
-                title: 'Sem6_Marksheet',
-                link: '#'
-            },
-        ]
-    };
+        }
+    }, [currentUserId]);
+    useEffect(() => {
+        const fetchDepartment = async (departmentId) => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${departmentId}`, {
+                    method: "GET",
+                    headers: {
+                        "Cache-Control": 'no-store',
+                        "Pragma": 'no-cache',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
+                }
+
+                const text = await response.text(); // Read as text first
+                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
+                setDepartment(data || []);
+            } catch (error) {
+                console.error("Failed to fetch user details:", error.message);
+                toast.error('Failed to fetch user details');
+            }
+        };
+        if (studentdata.departmentId) {
+            fetchDepartment(studentdata.departmentId);
+        }
+    }, [studentdata.departmentId]);
+
+    
+    console.log(studentdata)
 
     return (
         <div className="border max-w-screen-xl my-5 mx-5 rounded-xl shadow-lg bg-white">
+
             <div className="flex items-center justify-between py-5 px-6 border-b bg-gray-50">
                 <div className="flex items-center gap-4">
                     <img
                         className="w-24 h-24 rounded-full object-cover"
-                        src={student.profile}
+                        src={userdata.pfp}
                         alt="Profile"
                     />
                     <div className="font-medium">
                         <div className="font-bold text-xl">
-                            {student.FIRST_NAME} {student.LAST_NAME}
+                            {userdata.name}
                         </div>
                         <div className="text-sm text-gray-600 flex gap-1 items-center">
                             <Mail className="w-4 h-4" />
-                            {student.EMAIL}
+                            {userdata.email}
                         </div>
                         <div className="text-sm text-gray-600 flex gap-1 items-center">
                             <Landmark className="w-4 h-4" />
-                            {student.department}
+                            {department.title}
                         </div>
                         <div className="text-sm text-gray-600 flex gap-1 items-center">
                             <GraduationCap className="w-4 h-4" />
-                            Expected Graduation: {student.Pass_out_Year}
+                            Expected Graduation: {studentdata.passOutYear}
                         </div>
 
                     </div>
@@ -142,28 +130,28 @@ export default function StudentProfilePage() {
                 <div>
                     <div className="text-sm text-gray-600 flex gap-1 items-center">
                         <Phone className="w-4 h-4" />
-                        {student.phone}
+                        {studentdata.phone}
                     </div>
                     <div className="text-sm text-gray-600 flex gap-1 items-center">
                         <Github className="w-4 h-4" />
                         <a
-                            href={student.githubLink}
+                            href={studentdata.githubLink}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline text-sm cursor-pointer"
                         >
-                            {student.github}
+                            {studentdata.githubLink}
                         </a>
                     </div>
                     <div className="text-sm text-gray-600 flex gap-1 items-center">
                         <Linkedin className="w-4 h-4" />
                         <a
-                            href={student.githubLink}
+                            href={studentdata.linkedIn}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline text-sm flex items-center cursor-pointer"
                         >
-                            {student.linkedIn}
+                            {studentdata.linkedIn}
                         </a>
                     </div>
                 </div>
@@ -171,58 +159,75 @@ export default function StudentProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-3">
                 <div className="col-span-1 border-r bg-gray-50 px-6 py-4">
                     <h2 className="text-lg font-bold mb-3">Technical Skills</h2>
-                    {student.technicalSkills.map((category, index) => (
-                        <div key={index} className="mb-4">
-                            <h3 className="font-semibold text-gray-700">{category.category}</h3>
-                            <ul className="list-disc ml-6 text-gray-600">
-                                {category.skills.map((skill, i) => (
-                                    <li key={i}>{skill}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
+                    {studentdata.technicalSkill?.length > 0 ? (
+                        studentdata.technicalSkill.map((category, index) => (
+                            <div key={index} className="mb-4">
+                                <h3 className="font-semibold text-gray-700">{category.domain}</h3>
+                                <ul className="list-disc ml-6 text-gray-600">
+                                    {category.name.map((skill, i) => (
+                                        <li key={i}>{skill}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-gray-600">No technical skills available.</p>
+                    )}
+
                     <h2 className="text-lg font-bold mt-6 mb-3">Education</h2>
-                    {student.education.map((year, i) => (
-                        <div key={i}>
-                            <div className=' font-semibold w-[90%] flex justify-between mt-3'><h1>{year.institute}</h1><h1>{year.year}</h1></div>
-                            <div className=' font-light w-[90%] flex justify-between text-gray-600'><h1>{year.board}</h1><h1>{year.address}</h1></div>
-                            <p className="text-gray-600">{year.marks}</p>
-                        </div>
-                    ))}
-
-                    <div className='font-semibold w-[90%] flex justify-between mt-3'><h1>{student.college}</h1></div>
-                    <div className=' font-light w-[90%] flex justify-between text-gray-600'><h1>{student.college_address}</h1></div>
-                    <p className="text-gray-600">{student.CGPA}</p>
-
-                    <h2 className="text-lg font-bold mt-6 mb-3">Other Interests</h2>
-                    <p className="text-gray-600">{student.other_interests}</p>
+                    {studentdata.education?.length > 0 ? (
+                        studentdata.education.map((year, i) => (
+                            <div key={i}>
+                                <div className="font-semibold w-[90%] flex justify-between mt-3">
+                                    <h1>{year.institute}</h1>
+                                    <h1>{year.year}</h1>
+                                </div>
+                                <div className="font-light w-[90%] flex justify-between text-gray-600">
+                                    <h1>{year.board}</h1>
+                                    <h1>{year.address}</h1>
+                                </div>
+                                <p className="text-gray-600">{year.marks}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-gray-600">No education details available.</p>
+                    )}
                 </div>
+
                 <div className="relative col-span-2 px-6 py-4">
                     <h2 className="text-lg font-bold mb-3">About</h2>
-                    <p className="text-gray-600">{student.about}</p>
+                    <p className="text-gray-600">{studentdata.about}</p>
                     <h2 className="text-lg font-bold mt-6 mb-3">Projects</h2>
-                    {student.projects.map((project, i) => (
-                        <div key={i} className="mb-4">
-                            <h3 className="font-semibold text-gray-700">{project.name}</h3>
-                            <p className="text-sm text-gray-600">{project.description}</p>
-                            <p className="text-sm text-gray-600">
-                                <span className="font-medium">Technologies:</span>{' '}
-                                {project.technologies.join(', ')}
-                            </p>
-                            <a
-                                href={project.githubLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline text-sm"
-                            >
-                                View on GitHub
-                            </a>
-                        </div>
-                    ))}
+                    
+                    {studentdata.project?.length > 0 ? (
+                        studentdata.project.map((proj, i) => {
+                            return (
+                                <div key={i} className="mb-4">
+                                    <h3 className="font-semibold text-gray-700">{proj.name}</h3>
+                                    <p className="text-sm text-gray-600">{proj.description}</p>
+                                    <p className="text-sm text-gray-600">
+                                        <span className="font-medium">Technologies:</span>{' '}
+                                        {proj.technologies.join(', ')}
+                                    </p>
+                                    <a
+                                        href={proj.githubLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline text-sm"
+                                    >
+                                        View on GitHub
+                                    </a>
+                                </div>
+                            )
+
+                        })
+                    ) : (
+                        <p className="text-gray-600">No Project details available.</p>
+                    )}
                     <a href='/student/profile/edit' className=" absolute bottom-4 right-10 border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all">
                         Edit Profile
                     </a>
-                    <DownloadModal className='absolute bottom-4 ' documents={student.documents} />
+                    <DownloadModal className='absolute bottom-4 ' documents={studentdata.studentDocuments?studentdata.studentDocuments:[]} />
                 </div>
 
             </div>

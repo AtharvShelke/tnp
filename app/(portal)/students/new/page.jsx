@@ -10,7 +10,7 @@ import SelectInput from "@/components/FormInput/SelectInput";
 import DateInput from "@/components/FormInput/DateInput";
 import TextareaInput from "@/components/FormInput/TextareaInput";
 import PdfInput from "@/components/FormInput/PdfInput";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { UploadDropzone } from "@/lib/uploadthing";
 
 export default function NewStudent({ initialData = {}, isUpdate = false }) {

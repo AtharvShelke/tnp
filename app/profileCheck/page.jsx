@@ -12,7 +12,7 @@ const Page = () => {
   const [message, setMessage] = useState({ text: '', type: '' });
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.role === "ADMIN" || "COORDINATOR") {
+    if (status === "authenticated" && (session.user.role === "ADMIN" || session.user.role ===  "COORDINATOR")) {
       router.replace("/dashboard");
     }
     else if (status === "authenticated" && session?.user?.role === "STUDENT") {
