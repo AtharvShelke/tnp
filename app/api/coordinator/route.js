@@ -13,3 +13,13 @@ export const POST = async (request) => {
        console.log(error)
     }
 };
+
+export const GET = async (request) => {
+    try {
+        const coordinators = await db.coordinator.findMany();
+        
+        return NextResponse.json(coordinators);
+    } catch (error) {
+        return NextResponse.json({ error: error.message, message: "error" })
+    }
+};

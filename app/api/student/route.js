@@ -79,7 +79,7 @@ export async function POST(req) {
                         })),
                     },
                     studentDocuments: {
-                        create: studentDocument.map((item) => ({
+                        create: studentDocuments.map((item) => ({
                             title: item.title,
                             link: item.link,
                         })),
@@ -117,12 +117,12 @@ export async function POST(req) {
             stack: error.stack,
             name: error.name,
             code: error.code,
-            meta: error.meta, // Prisma-specific details
+            meta: error.meta, 
         });
     
-        // Include specific Prisma error codes for better insights
+        
         if (error.code === "P2002") {
-            // Example: Unique constraint violation
+            
             return NextResponse.json(
                 {
                     error: "A unique constraint violation occurred.",

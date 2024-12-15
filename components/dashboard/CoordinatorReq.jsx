@@ -6,7 +6,7 @@ export default function CoordinatorReq(props) {
     const router = useRouter();
     const handleErrorResponse = (status, responseData) => {
         if (status === 409) {
-            
+
             toast.error("User with this Email already exists");
         } else {
             console.error("Server Error:", responseData.message || "No message provided");
@@ -34,12 +34,12 @@ export default function CoordinatorReq(props) {
             toast.error("Oops! Something went wrong.");
         }
     };
-const handleApproveClick = async (id) => {
-   await approve(id)
-}
-const handleRejectClick = async (id) => {
-   await reject(id)
-}
+    const handleApproveClick = async (id) => {
+        await approve(id)
+    }
+    const handleRejectClick = async (id) => {
+        await reject(id)
+    }
     const reject = async (id) => {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinatorApproval/${id}`, {
@@ -87,18 +87,26 @@ const handleRejectClick = async (id) => {
                             <td className="px-6 py-4">{item.email}</td>
                             <td className="px-6 py-4">{item.status}</td>
                             <td className="px-6 py-4">
-                                <button
-                                    onClick={() => {handleApproveClick(item.id)}} // Pass the function as a callback
-                                    className="font-medium text-blue-600 hover:underline"
-                                >
-                                    Accept
-                                </button>
-                                <button
-                                    onClick={() => handleRejectClick(item.id)} // Pass the function as a callback
-                                    className="ml-5 font-medium text-red-600 hover:underline"
-                                >
-                                    Reject
-                                </button>
+                                {item.status === 'APPROVED' ? <>
+                                    <button 
+                                        className="font-medium text-blue-600 hover:underline"
+                                    >
+                                        View
+                                    </button>
+                                </> : <>
+                                    <button
+                                        onClick={() => { handleApproveClick(item.id) }} // Pass the function as a callback
+                                        className="font-medium text-blue-600 hover:underline"
+                                    >
+                                        Accept
+                                    </button>
+                                    <button
+                                        onClick={() => handleRejectClick(item.id)} // Pass the function as a callback
+                                        className="ml-5 font-medium text-red-600 hover:underline"
+                                    >
+                                        Reject
+                                    </button>
+                                </>}
                             </td>
                         </tr>
                     ))}

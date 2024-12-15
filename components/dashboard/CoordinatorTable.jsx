@@ -23,23 +23,21 @@ export default function CoordinatorTable(props) {
             {(props.data).map((item, i)=>(
                 <tr className="odd:bg-white  even:bg-gray-50  border-b " key={i}>
                 <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
-                    {item.Coordinator_ID}
+                    {item.id}
                 </th>
                 <td className="px-6 py-4">
-                    {item.Name}
+                    {item.name}
                 </td>
                 <td className="px-6 py-4">
-                    {item.Phone_no}
+                    {item.department}
                 </td>
                 <td className="px-6 py-4">
-                    {item.Email}
+                    {item.phoneNo}
                 </td>
                 <td className="px-6 py-4">
-                    {item.Institute}
+                    {item.email}
                 </td>
-                <td className="px-6 py-4">
-                    {item.Branch}
-                </td>
+                
                 
                 <td className="px-6 py-4">
                     <a href="#" className="font-medium text-blue-600  hover:underline">Edit</a>

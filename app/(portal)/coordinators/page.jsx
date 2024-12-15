@@ -6,43 +6,17 @@ import { useEffect, useState } from 'react';
 export default function AllCoordinatorsPage() {
   const [req, setReq] = useState([]);
   const [userData, setUserData] = useState([]);
+  const [coordinatorData, setCoordinatorData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const columns = ['coordinatorId', 'name', 'phoneNo', 'email', 'branch'];
+  const columns = ['id', 'name', 'department', 'phoneNo', 'email'];
   const reqColumns = ['id', 'name', 'email', 'status'];
-
-  const coordinators = [
-    {
-      coordinatorId: 'C001',
-      name: 'Rajesh Kumar',
-      phoneNo: '9876543210',
-      email: 'rajesh.kumar@example.com',
-      institute: 'ABC Institute of Technology',
-      branch: 'Computer Science',
-    },
-    {
-      coordinatorId: 'C002',
-      name: 'Priya Sharma',
-      phoneNo: '8765432109',
-      email: 'priya.sharma@example.com',
-      institute: 'XYZ College of Engineering',
-      branch: 'Electronics',
-    },
-    {
-      coordinatorId: 'C003',
-      name: 'Anil Mehta',
-      phoneNo: '7654321098',
-      email: 'anil.mehta@example.com',
-      institute: 'PQR Engineering University',
-      branch: 'Mechanical',
-    },
-  ];
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        // Fetch coordinator approval requests
+        
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinatorApproval`, {
           method: 'GET',
           headers: {
@@ -70,14 +44,62 @@ export default function AllCoordinatorsPage() {
               throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const user = await response.json();
-            return { ...user, status: item.status }; 
+            return { ...user, status: item.status };
           });
 
           const usersWithStatus = await Promise.all(userPromises);
+          console.log(usersWithStatus)
           setUserData(usersWithStatus);
         }
       } catch (err) {
-        console.error('Error fetching data:', err.message);
+        console.error('Error fetching requests:', err.message);
+        setError(err.message);
+      }
+    };
+
+    const fetchCoordinators = async () => {
+      try {
+        // Fetch coordinator data
+        const coordinatorResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinator`, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-store',
+            Pragma: 'no-cache',
+          },
+        });
+        if (!coordinatorResponse.ok) {
+          throw new Error(`HTTP error! Status: ${coordinatorResponse.status}`);
+        }
+        const coordinators = await coordinatorResponse.json();
+
+        // Fetch user data for each coordinator
+        const combinedDataPromises = coordinators.map(async (coordinator) => {
+          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${coordinator.userId}`, {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-store',
+              Pragma: 'no-cache',
+            },
+          });
+          if (!userResponse.ok) {
+            throw new Error(`HTTP error! Status: ${userResponse.status}`);
+          }
+          const userData = await userResponse.json();
+
+          return {
+            id: coordinator.id,
+            department: coordinator.departmentId,
+            phoneNo: coordinator.phone,
+            email: userData.email,
+            name: userData.name, 
+          };
+        });
+
+        const combinedData = await Promise.all(combinedDataPromises);
+        
+        setCoordinatorData(combinedData);
+      } catch (err) {
+        console.error('Error fetching coordinators:', err.message);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -85,6 +107,7 @@ export default function AllCoordinatorsPage() {
     };
 
     fetchRequests();
+    fetchCoordinators();
   }, []);
 
   if (loading) {
@@ -97,11 +120,10 @@ export default function AllCoordinatorsPage() {
 
   return (
     <div className="py-12 px-10">
-     
       <h1 className="font-bold text-xl mb-5">Coordinator Requests</h1>
       <CoordinatorReq columns={reqColumns} data={userData} />
       <h1 className="font-bold text-xl my-5">All Coordinators</h1>
-      <CoordinatorTable columns={columns} data={coordinators} />
+      <CoordinatorTable columns={columns} data={coordinatorData} />
     </div>
   );
 }
