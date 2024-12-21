@@ -18,6 +18,7 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
     register,
     handleSubmit,
     reset,
+    watch,
     setValue,
     control,
     formState: { errors },
@@ -30,21 +31,21 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     const fetchDepartments = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`, {
-        method: "GET",
-        headers: {
-          "Cache-Control": "no-store",
-          "Pragma": "no-cache",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const department = await response.json();
+        setDepartments(department);
+      } catch (error) {
+        toast.error("Failed to load departments. Please try again.");
+        console.error(error);
       }
-      const department = await response.json();
-      setDepartments(department);
     };
     fetchDepartments();
   }, []);
+
   const gender = [
     {
       id: 'Male',
@@ -91,16 +92,19 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
 
 
   ]
-  const [pdfUrls, setPdfUrls] = useState(initialData.studentDocuments?.map(doc => doc.link) || []);
+  const admissionType = [
+    {
+      id: 'Regular',
+      title: 'Regular'
+    },
+    {
+      id: 'Direct Second Year',
+      title: 'Direct Second Year'
+    },
+  ]
 
-  const handlePdfUrlChange = (index, url) => {
-    setValue(`studentDocuments[${index}].link`, url); 
-    setPdfUrls((prev) => {
-      const updatedUrls = [...prev];
-      updatedUrls[index] = url;
-      return updatedUrls;
-    });
-  };
+
+
   const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
     control,
     name: "education",
@@ -114,19 +118,19 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
     control,
     name: "project",
   });
-  const { fields: studentDocumentsFields, append: appendStudentDocuments, remove: removeStudentDocuments } = useFieldArray({
+  const { fields: studentDocumentsFields, append: appendStudentDocument, remove: removeStudentDocument } = useFieldArray({
     control,
-    name: "studentDocuments",
+    name: "studentDocument",
   });
 
 
   const onSubmit = async (data) => {
     data.userId = session?.user?.id;
     data.isProfileComplete = true;
-    data.placed=false;
+    data.placed = false;
 
     console.log(data);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student`,{
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -194,12 +198,12 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
             label="Select the Gender"
             options={gender}
           />
-          <DateInput
-            label={"Date of Birth"}
-            name={"dob"}
+          <SelectInput
             register={register}
-            errors={errors}
             className="w-full"
+            name="admissionType"
+            label="Admission Type"
+            options={admissionType}
           />
           <SelectInput
             register={register}
@@ -208,12 +212,20 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
             label="Expected Graduation"
             options={grad}
           />
+          <DateInput
+            label={"Date of Birth"}
+            name={"dob"}
+            register={register}
+            errors={errors}
+            className="col-span-2"
+          />
+
           <TextInput
             label="CGPA"
             name="cgpa"
             register={register}
             errors={errors}
-           
+
           />
           <TextInput
             label="Languages Known"
@@ -245,13 +257,13 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
             type="text"
             className="w-full"
           />
-          
+
           <TextInput
             label="Live BackLogs"
             name="liveBack"
             register={register}
             errors={errors}
-            
+
             className="w-full"
           />
           <TextInput
@@ -259,8 +271,40 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
             name="deadBack"
             register={register}
             errors={errors}
-            
+
             className="w-full"
+          />
+          <TextInput
+            label="Year Gap"
+            name="yearGap"
+            register={register}
+            errors={errors}
+
+
+          />
+          <TextInput
+            label="Preference 1"
+            name="preference1"
+            register={register}
+            errors={errors}
+
+
+          />
+          <TextInput
+            label="Preference 2"
+            name="preference2"
+            register={register}
+            errors={errors}
+
+
+          />
+          <TextInput
+            label="Preference 3"
+            name="preference3"
+            register={register}
+            errors={errors}
+
+
           />
           <div className="col-span-2">
             <h3 className="text-lg font-semibold text-gray-700">Education</h3>
@@ -342,7 +386,7 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
                   errors={errors}
                   type="text"
                 />
-                {/* Other fields */}
+
                 <button
                   type="button"
                   onClick={() => removeTechnicalSkill(index)}
@@ -431,25 +475,35 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
               <div key={field.id} className="mt-5 flex flex-col gap-5">
                 <TextInput
                   label="Name"
-                  name={`studentDocuments[${index}].title`}
+                  name={`studentDocument[${index}].title`}
                   register={register}
                   errors={errors}
                   type="text"
                 />
-                <UploadDropzone
-                    endpoint="pdfUploader"
-                    onClientUploadComplete={(res) => {
-                       
-                      setValue(`studentDocuments[${index}].link`, res[0]?.url || "");
-                        
-                    }}
-                    onUploadError={(error) => {
-                        console.log(`ERROR! ${error.message}`);
-                    }}
-                />
+                {!watch(`studentDocument[${index}].link`) ? (
+      <UploadDropzone
+        endpoint="pdfUploader"
+        onClientUploadComplete={(res) => {
+          const pdfUrl = res[0]?.url || "";
+          setValue(`studentDocument[${index}].link`, pdfUrl);
+          if (pdfUrl) {
+            console.log(`PDF Uploaded: ${pdfUrl}`);
+          }
+        }}
+        onUploadError={(error) => {
+          console.log(`ERROR! ${error.message}`);
+        }}
+      />
+    ) : (
+      <iframe
+        src={watch(`studentDocument[${index}].link`)}
+        className="mt-4 w-full h-64 border rounded"
+        title={`Document Preview ${index}`}
+      />
+    )}
                 <button
                   type="button"
-                  onClick={() => removeStudentDocuments(index)}
+                  onClick={() => removeStudentDocument(index)}
                   className="w-max text-red-500 hover:text-red-700 mt-2 px-2 py-1 rounded text-sm border border-red-500"
                 >
                   Remove
@@ -458,7 +512,7 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
             ))}
             <button
               type="button"
-              onClick={() => appendStudentDocuments({ title: "", link: "" })}
+              onClick={() => appendStudentDocument({ title: "", link: "" })}
               className="mt-2 mb-4 px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Add Document

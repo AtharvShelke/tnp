@@ -40,7 +40,7 @@ export default function DownloadModal(props) {
                                     <li key={i}>
 
                                         <a
-                                            href={document.link} download className="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow  "
+                                            href={document.link} download className="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow  " target="_blank"
                                         >
                                             <span className="flex-1 ms-3 whitespace-nowrap">{document.title}</span>
                                             <Download />

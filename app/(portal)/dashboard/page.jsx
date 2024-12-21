@@ -85,8 +85,8 @@ export default function Dashboard() {
     if (session?.user?.role === "ADMIN") {
         return (
             <div>
-                <div className="grid grid-cols-3 px-10 py-10 gap-10 border">
-                    {['drives', 'activities', 'booklets', 'students', 'coordinators', 'departments'].map((path) => (
+                <div className="grid grid-cols-4 px-10 py-10 gap-10 border">
+                    {['drives', 'activities', 'booklets', 'departments'].map((path) => (
                         <Link key={path} href={`/${path}/new`}>
                             <div className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center">
                                 Create New {path.charAt(0).toUpperCase() + path.slice(1)}
@@ -101,6 +101,7 @@ export default function Dashboard() {
         );
     }
 
-    router.push('/drives')
-    return null
+    if (session?.user?.role === 'STUDENT') {
+        router.push('/drives')
+    }
 }

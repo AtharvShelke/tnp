@@ -2,21 +2,23 @@
 import DownloadModal from '@/components/dashboard/DownloadModal';
 import { Github, GraduationCap, Landmark, Linkedin, Mail, Phone, University } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function StudentProfilePage() {
+    const params = useParams();
+    const { id } = params;
     const [userdata, setUserdata] = useState([]);
     const [studentdata, setStudentdata] = useState([]);
     const [department, setDepartment] = useState([]);
+const session = useSession();
 
-    const { data: session, status } = useSession();
-    const currentUserId = session?.user?.id
 
     useEffect(() => {
         const fetchUserDetails = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${currentUserId}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${id}`, {
                     method: "GET",
                     headers: {
                         "Cache-Control": 'no-store',
@@ -38,7 +40,7 @@ export default function StudentProfilePage() {
         };
         const fetchStudentDetails = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/${currentUserId}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/${id}`, {
                     method: "GET",
                     headers: {
                         "Cache-Control": 'no-store',
@@ -60,12 +62,12 @@ export default function StudentProfilePage() {
         };
 
 
-        if (currentUserId) {
+        if (id) {
             fetchUserDetails();
             fetchStudentDetails();
 
         }
-    }, [currentUserId]);
+    }, [id]);
     useEffect(() => {
         const fetchDepartment = async (departmentId) => {
             try {
@@ -259,9 +261,10 @@ export default function StudentProfilePage() {
                     )}
                     <div className='flex w-full items-center justify-between'>
                         <DownloadModal className=' ' documents={studentdata.studentDocument ? studentdata.studentDocument : []} />
-                        <a href='/student/profile/edit' className="  border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all">
+                        {session?.user?.role === 'STUDENT' ? (<a href='/student/profile/edit' className="  border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all">
                             Edit Profile
-                        </a>
+                        </a>) : (<></>)}
+
                     </div>
 
 

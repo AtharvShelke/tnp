@@ -1,7 +1,7 @@
 import db from '@/lib/db';
 import { stringToArray } from '@/lib/splitStringToArray';
 import { NextResponse } from 'next/server';
- 
+
 export async function POST(req) {
     try {
         const data = await req.json();
@@ -11,7 +11,7 @@ export async function POST(req) {
             address,
             departmentId,
             gender,
-            dob ,
+            dob,
             passOutYear,
             cgpa,
             otherInterests,
@@ -21,6 +21,11 @@ export async function POST(req) {
             about,
             liveBack,
             deadBack,
+            yearGap,
+            preference1,
+            preference2,
+            preference3,
+            admissionType,
             education = [],
             technicalSkill = [],
             project = [],
@@ -39,18 +44,24 @@ export async function POST(req) {
                     PRN,
                     phone,
                     address,
-                    
+
                     gender,
-                    dob:new Date(dob),
+                    dob: new Date(dob),
                     passOutYear,
                     cgpa,
-                    otherInterests:stringToArray(otherInterests),
-                    language:stringToArray(language),
+                    otherInterests: stringToArray(otherInterests),
+                    language: stringToArray(language),
                     githubLink,
                     linkedIn,
                     about,
                     liveBack,
                     deadBack,
+                    yearGap,
+                    preference1,
+                    preference2,
+                    preference3,
+                    admissionType,
+
                     isProfileComplete,
                     placed,
                     education: {
@@ -78,8 +89,8 @@ export async function POST(req) {
                             githubLink: item.githubLink,
                         })),
                     },
-                    studentDocuments: {
-                        create: studentDocuments.map((item) => ({
+                    studentDocument: {
+                        create: studentDocument.map((item) => ({
                             title: item.title,
                             link: item.link,
                         })),
@@ -117,12 +128,12 @@ export async function POST(req) {
             stack: error.stack,
             name: error.name,
             code: error.code,
-            meta: error.meta, 
+            meta: error.meta,
         });
-    
-        
+
+
         if (error.code === "P2002") {
-            
+
             return NextResponse.json(
                 {
                     error: "A unique constraint violation occurred.",
@@ -131,7 +142,7 @@ export async function POST(req) {
                 { status: 400 }
             );
         }
-    
+
         return NextResponse.json(
             {
                 error: error.message || "An error occurred while processing the request",
@@ -141,3 +152,20 @@ export async function POST(req) {
         );
     }
 }
+
+export const GET = async (request) => {
+    try {
+        const students = await db.student.findMany({
+            include:{
+                technicalSkill:true,
+                education:true,
+                project:true,
+                studentDocument:true
+            }
+        });
+        
+        return NextResponse.json(students);
+    } catch (error) {
+        return NextResponse.json({error, message:"error "})
+    }
+};

@@ -17,7 +17,7 @@ export const GET = async (req) => {
                 education:true,
                 technicalSkill:true,
                 project:true,
-                studentDocuments:true
+                studentDocument:true
             }
         });
 

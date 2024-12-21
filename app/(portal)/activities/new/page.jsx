@@ -165,7 +165,7 @@ export default function NewActivity({ initialData = {}, isUpdate = false }) {
             errors={errors}
             type="text"
           />
-        </div>
+        
 
         <DateInput
           label={"Date of Activity"}
@@ -181,6 +181,7 @@ export default function NewActivity({ initialData = {}, isUpdate = false }) {
           endpoint="imageUploader"
         />
         <SubmitButton isLoading={loading} title={'Activity'} />
+        </div>
       </form>
     </div>
   );

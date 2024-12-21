@@ -59,12 +59,12 @@ export default function AllCoordinatorsPage() {
 
     const fetchCoordinators = async () => {
       try {
-        // Fetch coordinator data
+        
         const coordinatorResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinator`, {
           method: 'GET',
           headers: {
             'Cache-Control': 'no-store',
-            Pragma: 'no-cache',
+            "Pragma": 'no-cache',
           },
         });
         if (!coordinatorResponse.ok) {
@@ -72,7 +72,7 @@ export default function AllCoordinatorsPage() {
         }
         const coordinators = await coordinatorResponse.json();
 
-        // Fetch user data for each coordinator
+        
         const combinedDataPromises = coordinators.map(async (coordinator) => {
           const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${coordinator.userId}`, {
             method: 'GET',
@@ -85,10 +85,21 @@ export default function AllCoordinatorsPage() {
             throw new Error(`HTTP error! Status: ${userResponse.status}`);
           }
           const userData = await userResponse.json();
+          const departmentResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${coordinator.departmentId}`, {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-store',
+              Pragma: 'no-cache',
+            },
+          })
+          if (!departmentResponse.ok) {
+            throw new Error(`HTTP error! Status: ${departmentResponse.status}`);
+          }
+          const departmentData = await departmentResponse.json();
 
           return {
             id: coordinator.id,
-            department: coordinator.departmentId,
+            department: departmentData.title,
             phoneNo: coordinator.phone,
             email: userData.email,
             name: userData.name, 

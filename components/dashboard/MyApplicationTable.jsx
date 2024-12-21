@@ -23,34 +23,20 @@ export default function MyApplicationTable(props) {
             {(props.data).map((item, i)=>(
                 <tr className="odd:bg-white  even:bg-gray-50  border-b " key={i}>
                 <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
-                    {item.Type}
+                    {item.referenceNumber}
                 </th>
                 <td className="px-6 py-4">
-                    {item.Title}
+                    {item.title}
                 </td>
                 <td className="px-6 py-4">
-                    {item.Date_of_Application}
+                    {item.createdAt}
                 </td>
                 <td className="px-6 py-4">
-                    {item.Round1}
+                    {item.status}
                 </td>
+                
                 <td className="px-6 py-4">
-                    {item.Round2}
-                </td>
-                <td className="px-6 py-4">
-                    {item.Round3}
-                </td>
-                <td className="px-6 py-4">
-                    {item.Round4}
-                </td>
-                <td className="px-6 py-4">
-                    {item.Round5}
-                </td>
-                <td className="px-6 py-4">
-                    {item.Selected}
-                </td>
-                <td className="px-6 py-4">
-                    <a href="#" className="font-medium text-blue-600  hover:underline">Edit</a>
+                    
                     <a href="#" className="ml-5 font-medium text-red-600  hover:underline">Delete</a>
                 </td>
             </tr>

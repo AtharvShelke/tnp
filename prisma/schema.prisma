@@ -61,6 +61,7 @@ model Drive {
   lastDriveDate    DateTime
   downloadlink     String?
   driveDepartments DriveDepartments[]
+  DriveApplication DriveApplication[]
 }
 
 model Round {
@@ -113,16 +114,17 @@ model User {
   Coordinator         Coordinator[]
   Admin               Admin[]
   CoordinatorApproval CoordinatorApproval?
+  DriveApplication    DriveApplication[]
 }
 
 model Student {
-  id                String             @id @default(auto()) @map("_id") @db.ObjectId
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            String             @unique @db.ObjectId
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String            @unique @db.ObjectId
   isProfileComplete Boolean
   PRN               String
-  department        Department         @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  departmentId      String             @db.ObjectId
+  department        Department        @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  departmentId      String            @db.ObjectId
   dob               DateTime
   gender            String
   phone             String
@@ -135,12 +137,17 @@ model Student {
   cgpa              String
   otherInterests    String[]
   about             String
+  admissionType     String
+  yearGap           String
+  preference1       String
+  preference2       String
+  preference3       String
   githubLink        String
   linkedIn          String
-  liveBack          String?            @default("0")
-  deadBack          String?            @default("0")
-  placed            Boolean            @default(false)
-  studentDocuments  StudentDocuments[]
+  liveBack          String?           @default("0")
+  deadBack          String?           @default("0")
+  placed            Boolean           @default(false)
+  studentDocument   StudentDocument[]
 }
 
 model Education {
@@ -164,7 +171,7 @@ model TechnicalSkill {
   studentId String?  @db.ObjectId
 }
 
-model StudentDocuments {
+model StudentDocument {
   id    String @id @default(auto()) @map("_id") @db.ObjectId
   title String
   link  String
@@ -216,6 +223,17 @@ model CoordinatorApproval {
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String         @unique @db.ObjectId
   status    ApprovalStatus @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model DriveApplication {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String @db.ObjectId
+  drive   Drive  @relation(fields: [driveId], references: [id], onDelete: Cascade)
+  driveId String @db.ObjectId
+  status String? @default("Pending")
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 }

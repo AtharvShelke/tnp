@@ -5,7 +5,9 @@ import {
   FileChartColumn,
   FileCheck2,
   GraduationCap,
+  Landmark,
   LayoutDashboard,
+  LayoutList,
   Presentation,
   UserCog,
   Users,
@@ -33,6 +35,7 @@ export default function Sidebar() {
         { name: "Students", icon: <Users />, href: "/students" },
         { name: "Co-ordinators", icon: <UserCog />, href: "/coordinators" },
         { name: "Booklets", icon: <FileChartColumn />, href: "/booklets" },
+        { name: "Departments", icon: <Landmark />, href: "/departments" },
       ]);
     } else if (session?.user?.role === "COORDINATOR") {
       setLinks([
@@ -43,6 +46,7 @@ export default function Sidebar() {
         { name: "Students", icon: <Users />, href: "/students" },
         { name: "Approvals", icon: <FileCheck2 />, href: "/approvals" },
         { name: "Booklets", icon: <FileChartColumn />, href: "/booklets" },
+        { name: "Applications", icon: <LayoutList />, href: "/applications" },
       ]);
     } else if (session?.user?.role === "STUDENT") {
       setLinks([

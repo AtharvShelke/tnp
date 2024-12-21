@@ -82,7 +82,7 @@ const Page = () => {
             <button
               onClick={() =>
                 handleRoleChange(
-                  '/api/coordinatorApproval',
+                  `${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinatorApproval`,
                   'Successfully sent the coordinator request to admin. Wait for confirmation',
                   true
                 )
@@ -102,6 +102,19 @@ const Page = () => {
                 {message.text}
               </p>
             )}
+            {/* <button
+              onClick={() =>
+                handleRoleChange(
+                  `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin`,
+                  'Successfully sent the coordinator request to admin. Wait for confirmation',
+                  true
+                )
+              }
+              disabled={loading}
+              className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center"
+            >
+              {loading ? 'Processing...' : 'Make Admin'}
+            </button> */}
           </div>
         ) : null}
       </div>
