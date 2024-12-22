@@ -12,11 +12,12 @@ export default function StudentProfilePage() {
 
     const { data: session, status } = useSession();
     const currentUserId = session?.user?.id
-
+    const timestamp = new Date().getTime();
+    
     useEffect(() => {
         const fetchUserDetails = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${currentUserId}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${currentUserId}?timestamp=${timestamp}`, {
                     method: "GET",
                     headers: {
                         "Cache-Control": 'no-store',
@@ -38,7 +39,7 @@ export default function StudentProfilePage() {
         };
         const fetchStudentDetails = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/${currentUserId}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/${currentUserId}?timestamp=${timestamp}`, {
                     method: "GET",
                     headers: {
                         "Cache-Control": 'no-store',
@@ -69,7 +70,7 @@ export default function StudentProfilePage() {
     useEffect(() => {
         const fetchDepartment = async (departmentId) => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${departmentId}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${departmentId}?timestamp=${timestamp}`, {
                     method: "GET",
                     headers: {
                         "Cache-Control": 'no-store',

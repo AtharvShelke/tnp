@@ -11,14 +11,14 @@ export default function ProfilePage() {
   const [coordinator, setCoordinator] = useState(null);
   const [department, setDepartment] = useState(null);
   const [loading, setLoading] = useState(true); 
-
+  const timestamp = new Date().getTime();
   useEffect(() => {
     if (!userId) return;
 
     const fetchCoordinatorDetails = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinator/${userId}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinator/${userId}?timestamp=${timestamp}`,
           {
             method: 'GET',
             headers: {
@@ -45,7 +45,7 @@ export default function ProfilePage() {
 
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${coordinator?.data?.departmentId}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${coordinator?.data?.departmentId}?timestamp=${timestamp}`,
           {
             method: 'GET',
             headers: {
