@@ -4,6 +4,7 @@ import FormHeader from "@/components/dashboard/FormHeader";
 import SelectInput from "@/components/FormInput/SelectInput";
 import SubmitButton from "@/components/FormInput/SubmitButton";
 import TextInput from "@/components/FormInput/TextInput";
+import { getRequest } from "@/lib/apiRequest";
 import { User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -41,12 +42,9 @@ export default function NewCoordinator({ initialData = {}, isUpdate = false }) {
     }
 
     const fetchData = async () => {
+      // coordinator/${userId}
       try {
-        const response = await fetch(`/api/coordinator/${userId}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        const result = await response.json();
+        const result = await getRequest(`coordinator/${userId}`)
         setCoordinatorFlag(result.isCoordinator)
         setData(result.data);
       } catch (error) {
@@ -61,17 +59,8 @@ export default function NewCoordinator({ initialData = {}, isUpdate = false }) {
   }, [userId]);
   useEffect(() => {
     const fetchDepartments = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`, {
-        method: "GET",
-        headers: {
-          "Cache-Control": "no-store",
-          "Pragma": "no-cache",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const department = await response.json();
+      // departments
+      const department = await getRequest('departments')
       setDepartments(department);
     };
     fetchDepartments();

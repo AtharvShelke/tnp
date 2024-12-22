@@ -1,5 +1,6 @@
 'use client'
 import DataTable from '@/components/dashboard/StudentTable'
+import { getRequest } from '@/lib/apiRequest';
 import formDateFromString from '@/lib/formDateFromString';
 import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react'
@@ -19,43 +20,16 @@ export default function AllStudentsPage() {
     }
 
     const fetchData = async () => {
+      // student
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/`, {
-          method: 'GET',
-          headers: {
-            'Cache-Control': 'no-store',
-            'Pragma': 'no-cache',
-          },
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        const students = await response.json();
+        const students = await getRequest(`student`)
 
 
         const combinedUserDataPromises = students.map(async (student) => {
-          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${student.userId}`, {
-            method: 'GET',
-            headers: {
-              'Cache-Control': 'no-store',
-              Pragma: 'no-cache',
-            },
-          });
-          if (!userResponse.ok) {
-            throw new Error(`HTTP error! Status: ${userResponse.status}`);
-          }
-          const userData = await userResponse.json();
-          const departmentResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${student.departmentId}`, {
-            method: 'GET',
-            headers: {
-              'Cache-Control': 'no-store',
-              Pragma: 'no-cache',
-            },
-          })
-          if (!departmentResponse.ok) {
-            throw new Error(`HTTP error! Status: ${departmentResponse.status}`);
-          }
-          const departmentData = await departmentResponse.json();
+          // user/${student.userId}
+          const userData = await getRequest(`user/${student.userId}`)
+          
+          const departmentData = await getRequest(`departments/${student.departmentId}`)
 
           return {
             user:userData.id,

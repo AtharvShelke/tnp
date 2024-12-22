@@ -35,7 +35,9 @@ export default function Sidebar() {
         { name: "Students", icon: <Users />, href: "/students" },
         { name: "Co-ordinators", icon: <UserCog />, href: "/coordinators" },
         { name: "Booklets", icon: <FileChartColumn />, href: "/booklets" },
+        { name: "Applications", icon: <LayoutList />, href: "/applications" },
         { name: "Departments", icon: <Landmark />, href: "/departments" },
+        
       ]);
     } else if (session?.user?.role === "COORDINATOR") {
       setLinks([
@@ -76,7 +78,7 @@ export default function Sidebar() {
         className={`fixed md:flex flex-col w-64 h-screen bg-gray-900 border-r border-gray-700 px-4 py-8 z-40 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"
           } md:translate-x-0`}
       >
-        <div className="flex flex-col items-center mt-6 -mx-2">
+        <div className="flex flex-col items-center mt-2 -mx-2">
           <img
             className="object-cover w-24 h-24 mx-2 rounded-full"
             src={session?.user?.pfp || "/logo.jpg"}
@@ -90,11 +92,11 @@ export default function Sidebar() {
           </p>
         </div>
 
-        <div className="flex flex-col justify-between flex-1 mt-6">
+        <div className="flex flex-col justify-between flex-1 mt-2">
           <nav>
             {links.map((link, i) => (
               <a
-                className={`flex items-center px-4 py-2 mt-5 transition-colors duration-300 transform rounded-lg text-gray-400 hover:bg-gray-800 hover:text-gray-200 ${path.includes(link.href)
+                className={`text-base flex items-center px-4 py-2 mt-4 transition-colors duration-300 transform rounded-lg text-gray-400 hover:bg-gray-800 hover:text-gray-200 ${path.includes(link.href)
                     ? "bg-gray-800 text-gray-200"
                     : ""
                   }`}

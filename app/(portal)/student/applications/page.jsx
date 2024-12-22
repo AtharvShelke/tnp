@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import MyApplicationTable from '@/components/dashboard/MyApplicationTable';
 import { useSession } from 'next-auth/react';
 import formDateFromString from '@/lib/formDateFromString';
+import { getRequest } from '@/lib/apiRequest';
 
 export default function Page() {
 
@@ -18,28 +19,16 @@ export default function Page() {
     }
 
     const fetchApplications = async () => {
+      // application/${userId}
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives/application/${userId}`, {
-          method: "GET",
-          headers: {
-            "Cache-Control": 'no-store',
-            "Pragma": 'no-cache',
-          },
-        });
 
-        if (!response.ok) {
-          console.log('Error in response');
-          return;
-        }
-
-        const data = await response.json();
-        // Assuming the response is an array of applications
+        const data = await getRequest(`application/${userId}`)
         const formattedData = data.map(item => ({
           ...item,
-          createdAt: formDateFromString(item.createdAt) // Format date field
+          createdAt: formDateFromString(item.createdAt) 
         }));
 
-        setApplications(formattedData); // Store formatted data
+        setApplications(formattedData); 
       } catch (error) {
         console.error('Error fetching applications:', error);
       }
@@ -55,7 +44,6 @@ export default function Page() {
       <div className='font-bold mb-5 flex justify-between items-center'>
         <h1 className='text-xl'>My Applications</h1>
       </div>
-      {/* Pass the updated 'applications' data to the table */}
       <MyApplicationTable columns={columns} data={applications} />
     </div>
   )

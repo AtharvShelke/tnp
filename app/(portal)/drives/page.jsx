@@ -1,6 +1,7 @@
 'use client'
 import Drive from "@/components/dashboard/Drive";
 import NewHeader from "@/components/dashboard/NewHeader";
+import { getRequest } from "@/lib/apiRequest";
 import formDateFromString from "@/lib/formDateFromString";
 
 import { useSession } from "next-auth/react";
@@ -19,17 +20,8 @@ const {data:session, status} = useSession();
 const router = useRouter()
   useEffect(() => {
     const fetchdrives = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives`, {
-        method: "GET",
-        headers: {
-          "Cache-Control": 'no-store',
-          'Pragma': 'no-cache',
-        },
-      })
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json()
+      // drives
+      const data = await getRequest(`drives`)
 
       setdrives(data);
 

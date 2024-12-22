@@ -1,6 +1,7 @@
 'use client';
 import CoordinatorReq from '@/components/dashboard/CoordinatorReq';
 import CoordinatorTable from '@/components/dashboard/CoordinatorTable';
+import { getRequest } from '@/lib/apiRequest';
 import { useEffect, useState } from 'react';
 
 export default function AllCoordinatorsPage() {
@@ -15,35 +16,17 @@ export default function AllCoordinatorsPage() {
 
   useEffect(() => {
     const fetchRequests = async () => {
+      // coordinatorApproval
       try {
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinatorApproval`, {
-          method: 'GET',
-          headers: {
-            'Cache-Control': 'no-store',
-            Pragma: 'no-cache',
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const requests = await response.json();
+       const requests = await getRequest('coordinatorApproval')
         setReq(requests);
 
-        // Fetch user data for all requests
+        
         if (requests.length > 0) {
           const userPromises = requests.map(async (item) => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${item.userId}`, {
-              method: 'GET',
-              headers: {
-                'Cache-Control': 'no-store',
-                Pragma: 'no-cache',
-              },
-            });
-            if (!response.ok) {
-              throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const user = await response.json();
+            
+            const user = await getRequest(`user/${item.userId}`)
             return { ...user, status: item.status };
           });
 
@@ -59,43 +42,15 @@ export default function AllCoordinatorsPage() {
 
     const fetchCoordinators = async () => {
       try {
-        
-        const coordinatorResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinator`, {
-          method: 'GET',
-          headers: {
-            'Cache-Control': 'no-store',
-            "Pragma": 'no-cache',
-          },
-        });
-        if (!coordinatorResponse.ok) {
-          throw new Error(`HTTP error! Status: ${coordinatorResponse.status}`);
-        }
-        const coordinators = await coordinatorResponse.json();
+        // coordinator
+        const coordinators = await getRequest(`coordinator`)
 
         
         const combinedDataPromises = coordinators.map(async (coordinator) => {
-          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${coordinator.userId}`, {
-            method: 'GET',
-            headers: {
-              'Cache-Control': 'no-store',
-              Pragma: 'no-cache',
-            },
-          });
-          if (!userResponse.ok) {
-            throw new Error(`HTTP error! Status: ${userResponse.status}`);
-          }
-          const userData = await userResponse.json();
-          const departmentResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${coordinator.departmentId}`, {
-            method: 'GET',
-            headers: {
-              'Cache-Control': 'no-store',
-              Pragma: 'no-cache',
-            },
-          })
-          if (!departmentResponse.ok) {
-            throw new Error(`HTTP error! Status: ${departmentResponse.status}`);
-          }
-          const departmentData = await departmentResponse.json();
+          // user/${coordinator.userId}
+          const userData = await getRequest(`user/${coordinator.userId}`)
+          // departments/${coordinator.departmentId}
+          const departmentData = await getRequest(`departments/${coordinator.departmentId}`)
 
           return {
             id: coordinator.id,

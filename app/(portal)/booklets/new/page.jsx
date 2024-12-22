@@ -12,6 +12,7 @@ import ImageInput from "@/components/FormInput/ImageInput";
 import PdfInput from "@/components/FormInput/PdfInput";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { getRequest } from "@/lib/apiRequest";
 
 export default function NewBooklet({ initialData = {}, isUpdate = false }) {
   const {
@@ -32,17 +33,8 @@ export default function NewBooklet({ initialData = {}, isUpdate = false }) {
 
   useEffect(() => {
     const fetchDepartments = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`, {
-        method: "GET",
-        headers: {
-          "Cache-Control": "no-store",
-          "Pragma": "no-cache",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const department = await response.json();
+      // departments
+      const department = await getRequest('departments')
       setDepartments(department);
     };
     fetchDepartments();

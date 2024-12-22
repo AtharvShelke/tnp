@@ -1,4 +1,5 @@
 'use client';
+import { getRequest } from '@/lib/apiRequest';
 import formDateFromString from '@/lib/formDateFromString';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
@@ -48,10 +49,9 @@ export default function DrivePage() {
 
   useEffect(() => {
     const fetchDrives = async () => {
+      // drives/${id}
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives/${id}`);
-        if (!response.ok) throw new Error(`Failed to fetch drive. Status: ${response.status}`);
-        const data = await response.json();
+        const data = await getRequest(`drives/${id}`)
         setDrive({
           ...data,
           driveDate: formDateFromString(data.driveDate),

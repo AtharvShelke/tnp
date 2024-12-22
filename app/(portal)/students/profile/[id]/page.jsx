@@ -1,5 +1,6 @@
 'use client'
 import DownloadModal from '@/components/dashboard/DownloadModal';
+import { getRequest } from '@/lib/apiRequest';
 import { Github, GraduationCap, Landmark, Linkedin, Mail, Phone, University } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
@@ -17,44 +18,20 @@ const session = useSession();
 
     useEffect(() => {
         const fetchUserDetails = async () => {
+          
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${id}`, {
-                    method: "GET",
-                    headers: {
-                        "Cache-Control": 'no-store',
-                        "Pragma": 'no-cache',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
-                }
-
-                const text = await response.text(); // Read as text first
-                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
-                setUserdata(data || []);
+                const data = await getRequest(`user/${id}`)
+                setUserdata(data);
             } catch (error) {
                 console.error("Failed to fetch user details:", error.message);
                 toast.error('Failed to fetch user details');
             }
         };
         const fetchStudentDetails = async () => {
+            // student/${id}
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/${id}`, {
-                    method: "GET",
-                    headers: {
-                        "Cache-Control": 'no-store',
-                        "Pragma": 'no-cache',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
-                }
-
-                const text = await response.text(); // Read as text first
-                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
-                setStudentdata(data || []);
+                const data = await getRequest(`student/${id}`)
+                setStudentdata(data);
             } catch (error) {
                 console.error("Failed to fetch user details:", error.message);
                 toast.error('Failed to fetch user details');
@@ -70,21 +47,9 @@ const session = useSession();
     }, [id]);
     useEffect(() => {
         const fetchDepartment = async (departmentId) => {
+            
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${departmentId}`, {
-                    method: "GET",
-                    headers: {
-                        "Cache-Control": 'no-store',
-                        "Pragma": 'no-cache',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
-                }
-
-                const text = await response.text(); // Read as text first
-                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
+                const data = await getRequest(`departments/${departmentId}`)
                 setDepartment(data || []);
             } catch (error) {
                 console.error("Failed to fetch user details:", error.message);

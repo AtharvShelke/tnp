@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import DataTable from '@/components/dashboard/StudentTable';
 import ApplicationTable from "@/components/dashboard/ApplicationTable";
 import ApplicantTable from "@/components/dashboard/ApplicantTable";
+import { getRequest } from "@/lib/apiRequest";
 
 export default function DriveApplication() {
   const [data, setData] = useState([]);
@@ -14,12 +15,9 @@ export default function DriveApplication() {
 
   useEffect(() => {
     const fetchDriveApplicants = async () => {
+      // drives/${id}/application
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives/${id}/application`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch drive applicants. Status: ${response.status}`);
-        }
-        const result = await response.json();
+        const result = await getRequest(`drives/${id}/application`)
         setData(result);
         setLoading(false);
       } catch (err) {

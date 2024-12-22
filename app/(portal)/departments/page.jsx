@@ -12,24 +12,21 @@ export default function Departments() {
 
     useEffect(() => {
         const fetchDepartments = async () => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`, {
-                method: "GET",
-                headers: {
-                    "Cache-Control": 'no-store', 
-                    'Pragma': 'no-cache',
-                },
-            })
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+
+            try {
+                const data = await getRequest('departments')
+                setDepartments(data)
+            } catch (error) {
+                console.log(error)
             }
-            const data = await response.json()
-
-            setDepartments(data);
-
+            finally {
+                setLoading(false)
+            }
         }
         fetchDepartments();
-        setLoading(false)
-    } , []);
+
+    }, []);
+
     const columns = ['id', 'title']
     if (loading) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;

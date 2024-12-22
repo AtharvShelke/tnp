@@ -1,5 +1,6 @@
 'use client';
 import DashboardCard from "@/components/dashboard/DashboardCard";
+import { getRequest } from "@/lib/apiRequest";
 import { User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -31,12 +32,9 @@ export default function Dashboard() {
         }
 
         const fetchData = async () => {
+            // coordinator/${userId}
             try {
-                const response = await fetch(`/api/coordinator/${userId}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch data");
-                }
-                const result = await response.json();
+                const result = await getRequest(`coordinator/${userId}`)
                 setCoordinatorFlag(result.isCoordinator);
                 setData(result.data);
             } catch (error) {

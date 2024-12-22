@@ -11,6 +11,7 @@ import SubmitButton from "@/components/FormInput/SubmitButton";
 import ImageInput from "@/components/FormInput/ImageInput";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { getRequest } from "@/lib/apiRequest";
 
 export default function NewActivity({ initialData = {}, isUpdate = false }) {
   const {
@@ -30,18 +31,9 @@ export default function NewActivity({ initialData = {}, isUpdate = false }) {
 
   useEffect(() => {
     const fetchDepartments = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`, {
-        method: "GET",
-        headers: {
-          "Cache-Control": "no-store",
-          "Pragma": "no-cache",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const department = await response.json();
-      setDepartments(department);
+      // departments
+      const data = await getRequest('departments')
+      setDepartments(data);
     };
     fetchDepartments();
   }, []);

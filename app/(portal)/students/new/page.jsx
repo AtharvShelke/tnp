@@ -12,6 +12,7 @@ import TextareaInput from "@/components/FormInput/TextareaInput";
 import PdfInput from "@/components/FormInput/PdfInput";
 import { signOut, useSession } from "next-auth/react";
 import { UploadDropzone } from "@/lib/uploadthing";
+import { getRequest } from "@/lib/apiRequest";
 
 export default function NewStudent({ initialData = {}, isUpdate = false }) {
   const {
@@ -31,12 +32,9 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     const fetchDepartments = async () => {
+      // departments
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const department = await response.json();
+        const department = await getRequest('departments')
         setDepartments(department);
       } catch (error) {
         toast.error("Failed to load departments. Please try again.");

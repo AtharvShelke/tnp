@@ -1,4 +1,5 @@
 'use client'
+import { getRequest } from '@/lib/apiRequest';
 import formDateFromString from '@/lib/formDateFromString';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -12,20 +13,11 @@ export default function BookletPage() {
 
     useEffect(() => {
         const fetchBooklet = async (id) => {
+            // booklets/${id}
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/booklets/${id}`, {
-                    method: "GET",
-                    headers: {
-                        "Cache-Control": 'no-store',
-                        "Pragma": 'no-cache',
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const data = await response.json();
+                const data = await getRequest(`booklets/${id}`)
                 setBooklet(data);
-                setLoading(false);  // Set loading to false once data is fetched
+                setLoading(false);  
             } catch (error) {
                 console.error("Error fetching data:", error);
                 setLoading(false);

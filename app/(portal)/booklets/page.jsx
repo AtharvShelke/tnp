@@ -1,6 +1,7 @@
 'use client'
 import Booklet from '@/components/dashboard/Booklet'
 import NewHeader from '@/components/dashboard/NewHeader'
+import { getRequest } from '@/lib/apiRequest'
 import { Plus } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 
@@ -11,17 +12,8 @@ export default function BookletsPage() {
 
   useEffect(() => {
     const fetchBooklets = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/booklets`, {
-        method: "GET",
-        headers: {
-          "Cache-Control": 'no-store',
-          'Pragma': 'no-cache',
-        },
-      })
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json()
+      // booklets
+      const data = await getRequest('booklets')
 
       setBooklets(data);
 

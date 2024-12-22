@@ -1,4 +1,5 @@
 'use client';
+import { getRequest } from '@/lib/apiRequest';
 import { Mail, Phone, University, UserRoundPen } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -17,22 +18,8 @@ export default function ProfilePage() {
 
     const fetchCoordinatorDetails = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinator/${userId}?timestamp=${timestamp}`,
-          {
-            method: 'GET',
-            headers: {
-              'Cache-Control': 'no-store',
-              'Pragma': 'no-cache',
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        
+        const data = await getRequest(`coordinator/${userId}`)
         setCoordinator(data);
       } catch (error) {
         console.error('Failed to fetch coordinator details:', error.message);
@@ -44,22 +31,9 @@ export default function ProfilePage() {
       if (!coordinator?.data?.departmentId) return;
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${coordinator?.data?.departmentId}?timestamp=${timestamp}`,
-          {
-            method: 'GET',
-            headers: {
-              'Cache-Control': 'no-store',
-              'Pragma': 'no-cache',
-            },
-          }
-        );
+        const data = await getRequest(`departments/${coordinator?.data?.departmentId}`)
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        
         setDepartment(data);
       } catch (error) {
         console.error('Failed to fetch department details:', error.message);
@@ -150,5 +124,5 @@ export default function ProfilePage() {
     );
   }
 
-  return null; // For any other case, return nothing
+  return null; 
 }

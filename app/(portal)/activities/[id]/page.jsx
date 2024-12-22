@@ -1,4 +1,5 @@
 'use client'
+import { getRequest } from '@/lib/apiRequest';
 import formDateFromString from '@/lib/formDateFromString';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -12,20 +13,11 @@ export default function ActivityPage() {
 
     useEffect(() => {
       const fetchactivities = async (id) => {
+        // activities/${id}
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/activities/${id}`, {
-            method: "GET",
-            headers: {
-              "Cache-Control": 'no-store',
-              "Pragma": 'no-cache',
-            },
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          const data = await response.json();
+          const data = await getRequest(`activities/${id}`);
           setActivity(data);
-          setLoading(false);  // Set loading to false once data is fetched
+          setLoading(false); 
         } catch (error) {
           console.error("Error fetching data:", error);
           setLoading(false);

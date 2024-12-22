@@ -1,5 +1,6 @@
 'use client'
 import DownloadModal from '@/components/dashboard/DownloadModal';
+import { getRequest } from '@/lib/apiRequest';
 import { Github, GraduationCap, Landmark, Linkedin, Mail, Phone, University } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
@@ -9,51 +10,27 @@ export default function StudentProfilePage() {
     const [userdata, setUserdata] = useState([]);
     const [studentdata, setStudentdata] = useState([]);
     const [department, setDepartment] = useState([]);
-
+    
     const { data: session, status } = useSession();
     const currentUserId = session?.user?.id
-    const timestamp = new Date().getTime();
+    
     
     useEffect(() => {
         const fetchUserDetails = async () => {
+            
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/user/${currentUserId}?timestamp=${timestamp}`, {
-                    method: "GET",
-                    headers: {
-                        "Cache-Control": 'no-store',
-                        "Pragma": 'no-cache',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
-                }
-
-                const text = await response.text(); // Read as text first
-                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
-                setUserdata(data || []);
+                const data = await getRequest(`user/${currentUserId}`);
+                setUserdata(data)
             } catch (error) {
                 console.error("Failed to fetch user details:", error.message);
                 toast.error('Failed to fetch user details');
             }
         };
         const fetchStudentDetails = async () => {
+            
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/${currentUserId}?timestamp=${timestamp}`, {
-                    method: "GET",
-                    headers: {
-                        "Cache-Control": 'no-store',
-                        "Pragma": 'no-cache',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
-                }
-
-                const text = await response.text(); // Read as text first
-                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
-                setStudentdata(data || []);
+                const data = await getRequest(`student/${currentUserId}`)
+                setStudentdata(data)
             } catch (error) {
                 console.error("Failed to fetch user details:", error.message);
                 toast.error('Failed to fetch user details');
@@ -69,22 +46,10 @@ export default function StudentProfilePage() {
     }, [currentUserId]);
     useEffect(() => {
         const fetchDepartment = async (departmentId) => {
+           
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments/${departmentId}?timestamp=${timestamp}`, {
-                    method: "GET",
-                    headers: {
-                        "Cache-Control": 'no-store',
-                        "Pragma": 'no-cache',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
-                }
-
-                const text = await response.text(); // Read as text first
-                const data = text ? JSON.parse(text) : null; // Parse JSON if not empty
-                setDepartment(data || []);
+                const data = await getRequest(`departments/${departmentId}`)
+                setDepartment(data);
             } catch (error) {
                 console.error("Failed to fetch user details:", error.message);
                 toast.error('Failed to fetch user details');
@@ -94,10 +59,6 @@ export default function StudentProfilePage() {
             fetchDepartment(studentdata.departmentId);
         }
     }, [studentdata.departmentId]);
-
-
-
-
     return (
         <div className="border max-w-screen-xl my-5 mx-5 rounded-xl shadow-lg bg-white">
 
