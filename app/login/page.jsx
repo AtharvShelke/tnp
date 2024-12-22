@@ -20,12 +20,12 @@ export default function Page() {
 
         {/* Right Form Section */}
         <div className="w-full px-6 py-8 md:px-8 lg:w-1/2">
-          
-          <div className="flex justify-center mx-auto h-16">
-            <img src="/logo.jpg" alt="" />
-          </div>
-            
-          
+          <a href="/">
+            <div className="flex justify-center mx-auto h-16">
+              <img src="/logo.jpg" alt="" />
+            </div>
+
+          </a>
 
           <p className="mt-3 text-xl text-center text-gray-600 ">
             Login
