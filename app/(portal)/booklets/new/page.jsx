@@ -13,6 +13,7 @@ import PdfInput from "@/components/FormInput/PdfInput";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { getRequest } from "@/lib/apiRequest";
+import { UploadDropzone } from "@uploadthing/react";
 
 export default function NewBooklet({ initialData = {}, isUpdate = false }) {
   const {
@@ -146,11 +147,11 @@ export default function NewBooklet({ initialData = {}, isUpdate = false }) {
           <PdfInput
             label="Booklet pdf"
             pdfUrl={pdfUrl}
-            setpdfUrl={setpdfUrl}
+            setPdfUrl={setpdfUrl}
             endpoint="pdfUploader"
           />
 
-
+            
         </div>
 
 
