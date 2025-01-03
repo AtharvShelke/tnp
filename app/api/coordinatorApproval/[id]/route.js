@@ -31,15 +31,22 @@ export const PUT = async (req) => {
         if (!user) {
             return NextResponse.json({ message: "User not found" }, { status: 400 });
         }
-       console.log('User found in approval')
-       await db.coordinatorApproval.update({
-        where:{userId:id},
-        data:{status}
-       })
-       await db.user.update({
-        where:{id},
-        data:{role:"COORDINATOR"}
-       })
+
+        console.log("User found in approval");
+
+        // Update the status in `coordinatorApproval`
+        await db.coordinatorApproval.update({
+            where: { userId: id },
+            data: { status },
+        });
+
+        // Update the user's role only if status is "APPROVED"
+        if (status === "APPROVED") {
+            await db.user.update({
+                where: { id },
+                data: { role: "COORDINATOR" },
+            });
+        }
 
         return NextResponse.json({ message: "Coordinator status updated successfully" });
     } catch (error) {
@@ -53,4 +60,3 @@ export const PUT = async (req) => {
         );
     }
 };
-// 6759cb61cc530e02a6716a6d
