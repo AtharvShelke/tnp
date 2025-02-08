@@ -29,7 +29,7 @@ export default function MyApplicationTable(props) {
                     {item.title}
                 </td>
                 <td className="px-6 py-4">
-                    {item.createdAt}
+                    {item.dateOfApplication}
                 </td>
                 <td className="px-6 py-4">
                     {item.status}

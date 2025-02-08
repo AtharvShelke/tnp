@@ -7,28 +7,33 @@ import formDateFromString from '@/lib/formDateFromString';
 import { getRequest } from '@/lib/apiRequest';
 
 export default function Page() {
-
   const { data: session } = useSession();
   const [applications, setApplications] = useState([]);
   const userId = session?.user?.id;
 
   useEffect(() => {
-    if (!userId) {
-      console.log('User not found');
-      return;
-    }
+    if (!userId) return;
 
     const fetchApplications = async () => {
-      // application/${userId}
       try {
+        const data = await getRequest(`application/${userId}`);
+        const applicationsData = data.application || [];
 
-        const data = await getRequest(`application/${userId}`)
-        const formattedData = data.map(item => ({
-          ...item,
-          createdAt: formDateFromString(item.createdAt) 
-        }));
+        // Fetch drive details for each application using Promise.all
+        const formattedApplications = await Promise.all(
+          applicationsData.map(async (app) => {
+            const drive = await getRequest(`drives/${app.driveId}`);
 
-        setApplications(formattedData); 
+            return {
+              referenceNumber: drive.referenceNumber || 'N/A',
+              title: drive.title || 'Untitled',
+              dateOfApplication: formDateFromString(app.createdAt),
+              status: app.status || 'Unknown',
+            };
+          })
+        );
+
+        setApplications(formattedApplications);
       } catch (error) {
         console.error('Error fetching applications:', error);
       }
@@ -37,7 +42,7 @@ export default function Page() {
     fetchApplications();
   }, [userId]);
 
-  const columns = ['Reference Number', 'Title', 'Date of Application', 'Status']
+  const columns = ['Reference Number', 'Title', 'Date of Application', 'Status'];
 
   return (
     <div className='py-12 px-10'>
@@ -46,5 +51,5 @@ export default function Page() {
       </div>
       <MyApplicationTable columns={columns} data={applications} />
     </div>
-  )
+  );
 }
