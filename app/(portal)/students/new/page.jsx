@@ -9,7 +9,6 @@ import toast from "react-hot-toast";
 import SelectInput from "@/components/FormInput/SelectInput";
 import DateInput from "@/components/FormInput/DateInput";
 import TextareaInput from "@/components/FormInput/TextareaInput";
-import PdfInput from "@/components/FormInput/PdfInput";
 import { signOut, useSession } from "next-auth/react";
 import { UploadDropzone } from "@/lib/uploadthing";
 import { getRequest } from "@/lib/apiRequest";
@@ -223,7 +222,7 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
             name="cgpa"
             register={register}
             errors={errors}
-
+            type="text"
           />
           <TextInput
             label="Languages Known"
@@ -479,26 +478,26 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
                   type="text"
                 />
                 {!watch(`studentDocument[${index}].link`) ? (
-      <UploadDropzone
-        endpoint="pdfUploader"
-        onClientUploadComplete={(res) => {
-          const pdfUrl = res[0]?.url || "";
-          setValue(`studentDocument[${index}].link`, pdfUrl);
-          if (pdfUrl) {
-            console.log(`PDF Uploaded: ${pdfUrl}`);
-          }
-        }}
-        onUploadError={(error) => {
-          console.log(`ERROR! ${error.message}`);
-        }}
-      />
-    ) : (
-      <iframe
-        src={watch(`studentDocument[${index}].link`)}
-        className="mt-4 w-full h-64 border rounded"
-        title={`Document Preview ${index}`}
-      />
-    )}
+                  <UploadDropzone
+                    endpoint="pdfUploader"
+                    onClientUploadComplete={(res) => {
+                      const pdfUrl = res[0]?.url || "";
+                      setValue(`studentDocument[${index}].link`, pdfUrl);
+                      if (pdfUrl) {
+                        console.log(`PDF Uploaded: ${pdfUrl}`);
+                      }
+                    }}
+                    onUploadError={(error) => {
+                      console.log(`ERROR! ${error.message}`);
+                    }}
+                  />
+                ) : (
+                  <iframe
+                    src={watch(`studentDocument[${index}].link`)}
+                    className="mt-4 w-full h-64 border rounded"
+                    title={`Document Preview ${index}`}
+                  />
+                )}
                 <button
                   type="button"
                   onClick={() => removeStudentDocument(index)}

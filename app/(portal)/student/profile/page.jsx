@@ -221,7 +221,7 @@ export default function StudentProfilePage() {
                     )}
                     <div className='flex w-full items-center justify-between'>
                         <DownloadModal className=' ' documents={studentdata.studentDocument ? studentdata.studentDocument : []} />
-                        <a href='/student/profile/edit' className="  border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all">
+                        <a href={`/student/profile/edit/${currentUserId}`} className="  border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all">
                             Edit Profile
                         </a>
                     </div>

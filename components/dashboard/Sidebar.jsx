@@ -84,7 +84,7 @@ export default function Sidebar() {
             src={session?.user?.pfp || "/logo.jpg"}
             alt="avatar"
           />
-          <h4 className="mx-2 mt-2 font-medium text-gray-800 dark:text-gray-200">
+          <h4 className="mx-2 mt-2 font-medium text-gray-200 dark:text-gray-200">
             {session?.user?.name}
           </h4>
           <p className="mx-2 mt-1 text-sm font-medium text-gray-600 dark:text-gray-400">
