@@ -8,51 +8,81 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-
-
-
 export default function DrivesPage() {
-
-  const [drives, setdrives] = useState([])
+  const [allDrives, setAllDrives] = useState([]);
+  const [drive, setDrive] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-const {data:session, status} = useSession();
-const router = useRouter()
+  const [department, setDepartment] = useState(null)
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   useEffect(() => {
-    const fetchdrives = async () => {
-      // drives
-      const data = await getRequest(`drives`)
-
-      setdrives(data);
-
-    }
-    fetchdrives();
-    setLoading(false)
+    const fetchDrives = async () => {
+      try {
+        const data = await getRequest("drives");
+        console.log(data)
+        setAllDrives(data);
+      } catch (err) {
+        setError("Failed to fetch drives.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDrives();
   }, []);
 
-if (session?.user?.role === 'USER') {
-  router.push('/profileCheck')
-}
+  useEffect(() => {
+    if (session?.user?.role === "USER") {
+      router.push("/profileCheck");
+    }
+
+    const fetchUserRoleData = async () => {
+      if (session?.user?.role === "COORDINATOR") {
+        const coordinator = await getRequest(`coordinator/${session.user.id}`);
+        
+        console.log(coordinator.departmentId);
+      }
+      if (session?.user?.role === "STUDENT") {
+        const student = await getRequest(`student/${session.user.id}`);
+
+        setDepartment(student.departmentId);
+        
+
+      }
+    };
+
+    if (session?.user?.role === "COORDINATOR" || session?.user?.role === "STUDENT") {
+      fetchUserRoleData();
+    }
+  }, [session, router]);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
+
   return (
     <div>
-      <NewHeader title={"Drives"} link={'/drives/new'} />
+      <NewHeader title={"Drives"} link={"/drives/new"} />
       <div className="w-max grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
-
-        {drives.map((drive, i) => {
-
-
-          const driveDate = formDateFromString(drive.driveDate)
-          const lastDriveDate = formDateFromString(drive.lastDriveDate)
-
-          return (
-            <Drive key={i} id={drive.id} title={drive.title} img={drive.imageUrl || '/logo.jpg'} date={driveDate} last_date={lastDriveDate} />
-          )
-        }
-
-        )}
-
-
+        {allDrives.map((drive, i) => {
+          const driveDate = formDateFromString(drive.driveDate);
+          const lastDriveDate = formDateFromString(drive.lastDriveDate);
+         
+         
+            return (
+              <Drive 
+                key={drive.id} 
+                id={drive.id} 
+                title={drive.title} 
+                img={drive.imageUrl || "/logo.jpg"} 
+                date={driveDate} 
+                last_date={lastDriveDate} 
+              />
+            );
+          
+          
+        })}
       </div>
     </div>
-  )
+  );
 }

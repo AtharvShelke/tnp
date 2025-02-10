@@ -14,15 +14,20 @@ export default function Dashboard() {
     const [error, setError] = useState(null);
     const { data: session, status } = useSession();
     const userId = session?.user?.id;
+    const [cordCount, setCordCount] = useState(0);
+    const [studCount, setStudCount] = useState(0);
+    const [driveCount, setDriveCount] = useState(0);
+    const [activityCount, setActivityCount] = useState(0);
+    const [bookletCount, setBookletCount] = useState(0);
     const router = useRouter();
 
     const dashboardItems = [
-        { name: 'Students', number: 10, icon: <User />, href: '/students', roles: ['ADMIN', 'COORDINATOR'] },
-        { name: 'Coordinator', number: 10, icon: <User />, href: '/coordinators', roles: ['ADMIN'] },
-        { name: 'Drives', number: 10, icon: <User />, href: '/drives', roles: ['ADMIN', 'COORDINATOR'] },
-        { name: 'Activities', number: 10, icon: <User />, href: '/activities', roles: ['ADMIN', 'COORDINATOR'] },
-        { name: 'Booklets', number: 10, icon: <User />, href: '/booklets', roles: ['ADMIN', 'COORDINATOR'] },
-        { name: 'Companies', number: 10, icon: <User />, href: '/dashboard', roles: ['ADMIN', 'COORDINATOR'] },
+        { name: 'Students', number: studCount, icon: <User />, href: '/students', roles: ['ADMIN', 'COORDINATOR'] },
+        { name: 'Coordinator', number: cordCount, icon: <User />, href: '/coordinators', roles: ['ADMIN'] },
+        { name: 'Drives', number: driveCount, icon: <User />, href: '/drives', roles: ['ADMIN', 'COORDINATOR'] },
+        { name: 'Activities', number: activityCount, icon: <User />, href: '/activities', roles: ['ADMIN', 'COORDINATOR'] },
+        { name: 'Booklets', number: bookletCount, icon: <User />, href: '/booklets', roles: ['ADMIN', 'COORDINATOR'] },
+        { name: 'Recruiters', number: 23, icon: <User />, href: '/dashboard', roles: ['ADMIN', 'COORDINATOR'] },
     ];
 
     useEffect(() => {
@@ -34,6 +39,16 @@ export default function Dashboard() {
         const fetchData = async () => {
             // coordinator/${userId}
             try {
+                const coordinatorCount = await getRequest('coordinator/count');
+                setCordCount(coordinatorCount);
+                const studentCount = await getRequest('student/count');
+                setStudCount(studentCount);
+                const driveCountResponse = await getRequest('drives/count');
+                setDriveCount(driveCountResponse);
+                const activityCountResponse = await getRequest('activities/count');
+                setActivityCount(activityCountResponse);
+                const bookletCountResponse = await getRequest('booklets/count');
+                setBookletCount(bookletCountResponse);
                 const result = await getRequest(`coordinator/${userId}`)
                 setCoordinatorFlag(result.isCoordinator);
                 setData(result.data);
