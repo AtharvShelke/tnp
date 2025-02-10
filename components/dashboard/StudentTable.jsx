@@ -41,7 +41,7 @@ export default function StudentTable(props) {
                   <a href={`/students/profile/${item.user}`} className="font-medium text-blue-600 hover:underline">
                     View
                   </a>
-                  <a href="#" className="ml-5 font-medium text-blue-600 hover:underline">
+                  <a href={`student/profile/edit/${item.user}`} className="ml-5 font-medium text-blue-600 hover:underline">
                     Edit
                   </a>
                   <a href="#" className="ml-5 font-medium text-red-600 hover:underline">
