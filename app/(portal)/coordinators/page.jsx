@@ -53,7 +53,7 @@ export default function AllCoordinatorsPage() {
           const departmentData = await getRequest(`departments/${coordinator.departmentId}`)
 
           return {
-            id: coordinator.id,
+            id: coordinator.userId,
             department: departmentData.title,
             phoneNo: coordinator.phone,
             email: userData.email,
@@ -89,7 +89,11 @@ export default function AllCoordinatorsPage() {
       <h1 className="font-bold text-xl mb-5">Coordinator Requests</h1>
       <CoordinatorReq columns={reqColumns} data={userData} />
       <h1 className="font-bold text-xl my-5">All Coordinators</h1>
-      <CoordinatorTable columns={columns} data={coordinatorData} />
+      <CoordinatorTable 
+        columns={columns} 
+        data={coordinatorData} 
+        setCoordinatorData={setCoordinatorData} // Pass state updater
+      />
     </div>
   );
 }

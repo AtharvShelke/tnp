@@ -1,6 +1,48 @@
+import { deleteRequest } from "@/lib/apiRequest"
+import toast from "react-hot-toast";
+import EditCoordinatorModal from "./EditCoordinatorModal";
+import { useState } from "react";
+import { updateRequest } from '@/lib/apiRequest';
+
 
 
 export default function CoordinatorTable(props) {
+    const [selectedCoordinator, setSelectedCoordinator] = useState(null);
+     const [isModalOpen, setIsModalOpen] = useState(false);
+
+     const handleEditClick = (coordinator) => {
+        setSelectedCoordinator(coordinator);
+        setIsModalOpen(true);
+      };
+    
+      // Function to update coordinator data
+      const updateCoordinatorData = async (updatedCoordinator) => {
+        const result = await updateRequest(`coordinator/${updatedCoordinator.id}`, updatedCoordinator);
+    
+        if (result && props.setCoordinatorData) {
+          props.setCoordinatorData((prevData) =>
+            prevData.map((coordinator) =>
+              coordinator.id === result.id ? result : coordinator
+            )
+          );
+        }
+        window.location.reload();
+
+      };
+
+    const handleDelete = async (id) => {
+        try {
+          const result = await deleteRequest(`coordinator/${id}`);
+          if (result) {
+            toast.success("Coordinator deleted successfully");
+            window.location.reload(); // This will reload the page after the success message
+          }
+        } catch (error) {
+          toast.error("Failed to Delete: ");
+        }
+      };
+      
+
   return (
     
 
@@ -40,14 +82,20 @@ export default function CoordinatorTable(props) {
                 
                 
                 <td className="px-6 py-4">
-                    <a href="#" className="font-medium text-blue-600  hover:underline">Edit</a>
-                    <a href="#" className="ml-5 font-medium text-red-600  hover:underline">Delete</a>
+                    <a onClick={() => handleEditClick(item)} className="font-medium text-blue-600  hover:underline">Edit</a>
+                    <a onClick={() => handleDelete(item.id)} className="ml-5 font-medium text-red-600  hover:underline cursor-pointer">Delete</a>
                 </td>
             </tr>
             ))}
             
         </tbody>
     </table>
+    <EditCoordinatorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        coordinator={selectedCoordinator}
+        onUpdate={updateCoordinatorData} // ✅ Pass onUpdate function
+      />
 </div>
 
   )
