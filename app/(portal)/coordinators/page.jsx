@@ -31,7 +31,7 @@ export default function AllCoordinatorsPage() {
           });
 
           const usersWithStatus = await Promise.all(userPromises);
-          console.log(usersWithStatus)
+          console.log("usersWithStatus:",usersWithStatus)
           setUserData(usersWithStatus);
         }
       } catch (err) {
@@ -44,7 +44,7 @@ export default function AllCoordinatorsPage() {
       try {
         // coordinator
         const coordinators = await getRequest(`coordinator`)
-
+        console.log("coordinators: ", coordinators)
         
         const combinedDataPromises = coordinators.map(async (coordinator) => {
           // user/${coordinator.userId}

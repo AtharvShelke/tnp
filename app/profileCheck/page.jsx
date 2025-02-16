@@ -22,6 +22,7 @@ const Page = () => {
     }else if (status === "unauthenticated") {
       router.replace("/login");
     }
+    
   }, [status, session, router]);
 
   const handleRoleChange = async (apiUrl, successMessage, redirect = false) => {

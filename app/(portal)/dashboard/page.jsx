@@ -22,7 +22,7 @@ export default function Dashboard() {
         booklets: 0,
     });
 
-    const [isCoordinator, setIsCoordinator] = useState(false);
+    const [isCoordinator, setIsCoordinator] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -60,7 +60,7 @@ export default function Dashboard() {
                     booklets: bookletCount,
                 });
 
-                setIsCoordinator(coordinatorData?.isCoordinator);
+                setIsCoordinator(coordinatorData?.isCoordinator ?? false);
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
                 setError(error.message);
@@ -73,18 +73,19 @@ export default function Dashboard() {
     }, [userId]);
 
     useEffect(() => {
-        if (userRole === "COORDINATOR" && !isCoordinator) {
-            router.push("/coordinators/new");
+        if (!loading && userRole === "COORDINATOR" && isCoordinator === false) {
+            router.replace("/coordinators/new");
         }
-    }, [userRole, isCoordinator, router]);
+    }, [loading, userRole, isCoordinator, router]);
+
+    useEffect(() => {
+        if (!loading && userRole === "STUDENT") {
+            router.replace("/drives");
+        }
+    }, [loading, userRole, router]);
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
-
-    if (userRole === "STUDENT") {
-        router.push("/drives");
-        return null;
-    }
 
     return (
         <div className="p-6">

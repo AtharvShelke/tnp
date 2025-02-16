@@ -40,12 +40,13 @@ export default function NewCoordinator({ initialData = {}, isUpdate = false }) {
 
       return;
     }
-
+   
     const fetchData = async () => {
       // coordinator/${userId}
       try {
         const result = await getRequest(`coordinator/${userId}`)
         setCoordinatorFlag(result.isCoordinator)
+        console.log(result)
         setData(result.data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -105,7 +106,7 @@ export default function NewCoordinator({ initialData = {}, isUpdate = false }) {
 
   }
 
-  if (data?.role === "COORDINATOR") {
+  if (session?.user?.role === "COORDINATOR") {
     if (!coordinatorFlag) {
       return (
         <div className="p-6">
@@ -155,7 +156,7 @@ export default function NewCoordinator({ initialData = {}, isUpdate = false }) {
 
 
 
-  if (data?.role === "ADMIN") {
+  if (session?.user?.role === "ADMIN") {
     return (
       <div>
         <h1>Unauthorized this is a coordinator page and you are an admin</h1>
