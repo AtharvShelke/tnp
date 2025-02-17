@@ -1,77 +1,9 @@
-refactor code and optimize it
 
-admin
---dashboard
-    get counts of all the entities
-    change design if have time
-    the companies link is irrelevant, add recruiters in that place
---profile
-    nothing more is needed atm
-    add edit profile functionality
---drives
-    the download functionality for drive would be better
-    the ui design could be better
-    add edit/delete drive functionality
---activity
-    change css according to drive
-    needs to be worked on
-    change apply button to view register students (same logic as view applied students)
-    a additional information field could be a good addition
-    add edit/delete activity functionality
---students
-    add a loading text(for now) while fetching the students data
-    maybe add filters to view students based on admin/coordinator/recruiter's preference
-    add edit/delete logic for students
-    add loading for students profile page
---coordinators
-    add edit/delete coordinator functionality
-    coordinator requests once approved/rejected move to another table(frontend) and only show pending requests on top
-    add rejected functionality to admin during requests
-    add a view coordinator functionality
---departments
-    add edit/delete functionality to departments
-    can add a view link where admin can see the coordinator and students of that particular department.
-    add padding from the bottom
-
-coordinator
---dashboard
-    counts of entities, maybe add more functionality
---profile
-    add loading for fetching department or maybe add a backend functionality
-    can better the ui
-    edit profile functionality
---drives
-    view drives of their respective departments only
-    view applied student of the particular department
---activities
-    change css according to drive
-    view of own dept only
-    instead of apply button view students of own department
---students 
-    filter students according to department
-    rest same as admin
---approvals
-    after adding student edit logic, add approval logic (name, updated fields, etc)
---applications
-    filter for drive only of coordinators department
-    add edit/delete functionality    
-
-student
---profile
-    add loading
---applications
-    add delete functionality
-    add one more table of download activities
-
-recruiter
-    ???
+    user   
+        |    id    |    name    |    email    |    password    |    pfp    |    role    |
+    recruiter
+        |    id    |    company    |    phone    |    designation    |    linkedIn profile    |    account status
     
-landing page
---navbar
---hero section
---about
---why
---head
---coordinator
---contact
-
+    recruiter can create a drive
+    control applied students
+    
