@@ -5,32 +5,59 @@ import NewHeader from '@/components/dashboard/NewHeader'
 import { getRequest } from '@/lib/apiRequest'
 import formDateFromString from '@/lib/formDateFromString'
 import React, { useEffect, useState } from 'react'
+import { ClipLoader } from 'react-spinners'
 
 export default function page() {
   const [drives, setdrives] = useState([])
   const [loading, setLoading] = useState(true);
+  let [color, setColor] = useState("#324sdf");
+
   useEffect(() => {
     const fetchdrives = async () => {
-     
-      const data = await getRequest(`activities`);
-      setdrives(data);
-
-    }
+      try {
+        const data = await getRequest('activities');
+        setdrives(data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching the data or encountering an error
+      }
+    };
+    
     fetchdrives();
-    setLoading(false)
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <ClipLoader
+          color={color}
+          loading={loading}
+          size={150}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
       <NewHeader title={"Activities"} link={'/activities/new'} />
       <div className="px-16 grid grid-cols-4 gap-y-6">
         {drives.map((drive, i) => {
-          const formattedDate = formDateFromString(drive.date)
+          const formattedDate = formDateFromString(drive.date);
           return (
-            <Activity key={i} title={drive.title} img={drive.imageUrl || '/logo.jpg'} date={formattedDate} id={drive.id} />
-          )
+            <Activity
+              key={i}
+              title={drive.title}
+              img={drive.imageUrl || '/logo.jpg'}
+              date={formattedDate}
+              id={drive.id}
+            />
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
