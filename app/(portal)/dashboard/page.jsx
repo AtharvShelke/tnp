@@ -13,18 +13,19 @@ export default function Dashboard() {
     const router = useRouter();
     const userId = session?.user?.id;
     const userRole = session?.user?.role;
-
     const [counts, setCounts] = useState({
         students: 0,
         coordinators: 0,
         drives: 0,
         activities: 0,
         booklets: 0,
+        recruiters: 0,
     });
 
-    const [isCoordinator, setIsCoordinator] = useState(null);
+    const [isCoordinator, setIsCoordinator] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [recruiterStatus, setRecruiterStatus] = useState(null);
 
     const dashboardItems = useMemo(() => [
         { name: "Students", number: counts.students, icon: <User />, href: "/students", roles: ["ADMIN", "COORDINATOR"] },
@@ -32,7 +33,7 @@ export default function Dashboard() {
         { name: "Drives", number: counts.drives, icon: <User />, href: "/drives", roles: ["ADMIN", "COORDINATOR"] },
         { name: "Activities", number: counts.activities, icon: <User />, href: "/activities", roles: ["ADMIN", "COORDINATOR"] },
         { name: "Booklets", number: counts.booklets, icon: <User />, href: "/booklets", roles: ["ADMIN", "COORDINATOR"] },
-        { name: "Recruiters", number: 23, icon: <User />, href: "/dashboard", roles: ["ADMIN", "COORDINATOR"] },
+        { name: "Recruiters", number: counts.recruiters, icon: <User />, href: "/dashboard", roles: ["ADMIN", "COORDINATOR"] },
     ], [counts]);
 
     useEffect(() => {
@@ -49,6 +50,7 @@ export default function Dashboard() {
                     getRequest("drives/count"),
                     getRequest("activities/count"),
                     getRequest("booklets/count"),
+                    // getRequest("recruiters/count"),
                     getRequest(`coordinator/${userId}`)
                 ]);
 
@@ -58,6 +60,7 @@ export default function Dashboard() {
                     drives: driveCount,
                     activities: activityCount,
                     booklets: bookletCount,
+                    // recruiters: recruiterCount,
                 });
 
                 setIsCoordinator(coordinatorData?.isCoordinator ?? false);
@@ -73,7 +76,7 @@ export default function Dashboard() {
     }, [userId]);
 
     useEffect(() => {
-        if (!loading && userRole === "COORDINATOR" && isCoordinator === false) {
+        if (!loading && userRole === "COORDINATOR" && !isCoordinator) {
             router.replace("/coordinators/new");
         }
     }, [loading, userRole, isCoordinator, router]);
@@ -84,8 +87,38 @@ export default function Dashboard() {
         }
     }, [loading, userRole, router]);
 
+    useEffect(() => {
+        const fetchRecruiterData = async () => {
+            if (!loading && userRole === "RECRUITER") {
+                try {
+                    const data = await getRequest(`recruiter/${userId}`);
+                    setRecruiterStatus(data?.status ?? null);
+                } catch (error) {
+                    console.error("Error fetching recruiter data:", error);
+                }
+            }
+        };
+        fetchRecruiterData();
+    }, [loading, userRole, userId]);
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
+
+    if (userRole === "RECRUITER") {
+        if (recruiterStatus === "PENDING") {
+            return <div className="flex flex-col items-center justify-center min-h-[90vh] p-6 bg-gray-100 rounded-lg shadow-md border border-gray-300">
+            <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-md w-full max-w-md">
+                <h2 className="text-lg font-semibold">Account Request Pending</h2>
+                <p className="mt-2 text-sm">
+                    Your account request has been sent to the <strong>Training and Placement Office of MGM University</strong>.  
+                    Please wait for approval. You will be notified once your account is activated.
+                </p>
+            </div>
+        </div>
+        
+        }
+        return <div>This is the recruiter dashboard</div>;
+    }
 
     return (
         <div className="p-6">

@@ -15,13 +15,12 @@ export default function DriveApplication() {
 
   useEffect(() => {
     const fetchDriveApplicants = async () => {
-      // drives/${id}/application
       try {
-        const result = await getRequest(`drives/${id}/application`)
+        const result = await getRequest(`drives/${id}/application`);
         setData(result);
-        setLoading(false);
       } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
       }
     };
@@ -30,57 +29,47 @@ export default function DriveApplication() {
   }, [id]);
 
   const columnNames = [
-    "PRN",
-    "Name",
-    "Email",
-    "Phone",
-    "Adress",
-    "DOB",
-    "Gender",
-    "Department",
-    "CGPA",
-    "Admission Type",
-    "Expected Grad",
-    "Live Backlogs",
-    "Dead Backlogs",
-    "Year Gap",
-    "Preference 1",
-    "Preference 2",
-    "Preference 3",
-    "Placed"
+    "PRN", "Name", "Email", "Phone", "Address", "DOB", "Gender",
+    "Department", "CGPA", "Admission Type", "Expected Grad", 
+    "Live Backlogs", "Dead Backlogs", "Year Gap",
+    "Preference 1", "Preference 2", "Preference 3", "Placed"
   ];
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center my-10">
-        <span>Loading...</span>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="flex items-center gap-2 text-gray-700">
+          <span className="animate-spin h-5 w-5 border-t-2 border-gray-600 rounded-full"></span>
+          <span>Loading applicants...</span>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center my-10">
-        <span className="text-red-500">Error: {error}</span>
+      <div className="flex justify-center items-center min-h-screen">
+        <span className="text-red-600 font-medium bg-red-100 px-4 py-2 rounded-md">
+          Error: {error}
+        </span>
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex justify-center items-center my-10">
-        <span>No applicants found.</span>
+      <div className="flex justify-center items-center min-h-screen">
+        <span className="text-gray-500 text-lg">No applicants found.</span>
       </div>
     );
   }
 
   return (
-   <div className='py-12 px-10 max-w-[1250px]'>
-           <div className='font-bold mb-5 flex justify-between items-center'>
-             <h1 className='text-xl'>All Students</h1>
-            
-           </div>
-           <ApplicantTable columns={columnNames} data={data} />
-         </div>
+    <div className="max-w-6xl mt-10 mx-auto py-10 px-6 bg-white rounded-xl shadow-md">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold text-gray-800">All Applicants</h1>
+      </div>
+      <ApplicantTable columns={columnNames} data={data} />
+    </div>
   );
 }

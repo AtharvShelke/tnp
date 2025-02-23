@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 
 export default function DrivePage() {
   const params = useParams();
+  const router = useRouter();
   const { id } = params;
   const [drive, setDrive] = useState(null);
   const [applied, setApplied] = useState(false);
@@ -114,7 +115,7 @@ export default function DrivePage() {
     );
   }
 
-  const router = useRouter();
+  
 
   const handleDelete = async (driveId) => {
     const confirmation = window.confirm("Are you sure you want to delete this drive?");

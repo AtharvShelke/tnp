@@ -14,9 +14,24 @@ export default function DrivesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [department, setDepartment] = useState(null)
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession();
   const router = useRouter();
-  
+
+  useEffect(() => {
+    const fetchDrives = async () => {
+      try {
+        const data = await getRequest("drives");
+        console.log(data)
+        setAllDrives(data);
+      } catch (err) {
+        setError("Failed to fetch drives.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDrives();
+  }, []);
+
   useEffect(() => {
     if (session?.user?.role === "USER") {
       router.push("/profileCheck");
@@ -30,7 +45,7 @@ export default function DrivesPage() {
       }
       if (session?.user?.role === "STUDENT") {
         const student = await getRequest(`student/${session.user.id}`);
-        // console.log("student: ", student.departmentId)
+
         setDepartment(student.departmentId);
         
 
@@ -41,34 +56,6 @@ export default function DrivesPage() {
       fetchUserRoleData();
     }
   }, [session, router]);
-
-  useEffect(() => {
-    console.log("student department: ", department)
-    if (department) {
-      const fetchDrives = async () => {
-      
-        try {
-          const data = await getRequest("drives");
-          data.map((drive)=>{
-            
-            const ddp = drive.driveDepartments;
-            ddp.forEach(element => {
-              console.log("Element: ", element)
-            });
-          })
-          setAllDrives(data);
-        } catch (err) {
-          setError("Failed to fetch drives.");
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchDrives();
-    }
-    
-  }, [department]);
-
-  
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;

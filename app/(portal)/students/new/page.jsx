@@ -126,7 +126,7 @@ export default function NewStudent({ initialData = {}, isUpdate = false }) {
     data.isProfileComplete = true;
     data.placed = false;
 
-    console.log(data);
+    // console.log(data);
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student`, {
       method: "POST",
       headers: {

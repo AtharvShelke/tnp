@@ -29,14 +29,11 @@ export default function page() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <ClipLoader
-          color={color}
-          loading={loading}
-          size={150}
-          aria-label="Loading Spinner"
-          data-testid="loader"
-        />
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="flex items-center gap-2 text-gray-700">
+          <span className="animate-spin h-5 w-5 border-t-2 border-gray-600 rounded-full"></span>
+          <span>Loading activities...</span>
+        </div>
       </div>
     );
   }
