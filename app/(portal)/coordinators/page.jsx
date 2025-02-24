@@ -81,25 +81,31 @@ export default function AllCoordinatorsPage() {
   }, []);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">
-      <ClipLoader
-        color={color}
-        loading={loading}
-        size={150}
-        aria-label="Loading Spinner"
-        data-testid="loader"
-      />
+    return <div className="flex justify-center items-center min-h-screen">
+    <div className="flex items-center gap-2 text-gray-700">
+      <span className="animate-spin h-5 w-5 border-t-2 border-gray-600 rounded-full"></span>
+      <span>Loading applicants...</span>
     </div>
+      </div>
   }
 
   if (error) {
     return <p className="text-red-500">Error: {error}</p>;
   }
+   // Sort coordinator requests: pending requests come first, then approved
+   const sortedUserData = [...userData].sort((a, b) => {
+    const aStatus = a.status?.toLowerCase();
+    const bStatus = b.status?.toLowerCase();
+
+    if (aStatus === "pending" && bStatus !== "pending") return -1;
+    if (aStatus !== "pending" && bStatus === "pending") return 1;
+    return 0;
+  });
 
   return (
     <div className="py-12 px-10">
       <h1 className="font-bold text-xl mb-5">Coordinator Requests</h1>
-      <CoordinatorReq columns={reqColumns} data={userData} />
+      <CoordinatorReq columns={reqColumns} data={sortedUserData} />
       <h1 className="font-bold text-xl my-5">All Coordinators</h1>
       <CoordinatorTable
         columns={columns}
