@@ -2,7 +2,7 @@
 
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import { getRequest } from "@/lib/apiRequest";
-import { User } from "lucide-react";
+import { User, Loader2, AlertTriangle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -44,13 +44,13 @@ export default function Dashboard() {
 
         const fetchData = async () => {
             try {
-                const [coordinatorCount, studentCount, driveCount, activityCount, bookletCount, coordinatorData] = await Promise.all([
+                const [coordinatorCount, studentCount, driveCount, activityCount, bookletCount, recruiterCount, coordinatorData] = await Promise.all([
                     getRequest("coordinator/count"),
                     getRequest("student/count"),
                     getRequest("drives/count"),
                     getRequest("activities/count"),
                     getRequest("booklets/count"),
-                    // getRequest("recruiters/count"),
+                    getRequest("recruiter/count"),
                     getRequest(`coordinator/${userId}`)
                 ]);
 
@@ -60,7 +60,7 @@ export default function Dashboard() {
                     drives: driveCount,
                     activities: activityCount,
                     booklets: bookletCount,
-                    // recruiters: recruiterCount,
+                    recruiters: recruiterCount,
                 });
 
                 setIsCoordinator(coordinatorData?.isCoordinator ?? false);
@@ -101,32 +101,28 @@ export default function Dashboard() {
         fetchRecruiterData();
     }, [loading, userRole, userId]);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
+    if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin h-10 w-10 text-gray-500" /></div>;
+    if (error) return <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-red-100 border border-red-400 text-red-800 rounded-lg shadow-md"><AlertTriangle className="h-8 w-8" /><p className="mt-2 font-semibold">{error}</p></div>;
 
     if (userRole === "RECRUITER") {
         if (recruiterStatus === "PENDING") {
             return <div className="flex flex-col items-center justify-center min-h-[90vh] p-6 bg-gray-100 rounded-lg shadow-md border border-gray-300">
-            <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-md w-full max-w-md">
-                <h2 className="text-lg font-semibold">Account Request Pending</h2>
-                <p className="mt-2 text-sm">
-                    Your account request has been sent to the <strong>Training and Placement Office of MGM University</strong>.  
-                    Please wait for approval. You will be notified once your account is activated.
-                </p>
-            </div>
-        </div>
-        
+                <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-md w-full max-w-md">
+                    <h2 className="text-lg font-semibold">Account Request Pending</h2>
+                    <p className="mt-2 text-sm">Your account request has been sent to the <strong>Training and Placement Office of MGM University</strong>. Please wait for approval. You will be notified once your account is activated.</p>
+                </div>
+            </div>;
         }
-        return <div>This is the recruiter dashboard</div>;
+        return <div className="flex items-center justify-center min-h-screen text-xl font-semibold">Welcome to your recruiter dashboard</div>;
     }
 
     return (
         <div className="p-6">
             {userRole === "ADMIN" && (
-                <div className="grid grid-cols-4 px-10 py-10 gap-10 border">
+                <div className="grid grid-cols-4 px-10 py-10 gap-10 border bg-gray-50 rounded-lg shadow">
                     {["drives", "activities", "booklets", "departments"].map((path) => (
                         <Link key={path} href={`/${path}/new`}>
-                            <div className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center">
+                            <div className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center hover:bg-gray-100 transition-all cursor-pointer">
                                 Create New {path.charAt(0).toUpperCase() + path.slice(1)}
                             </div>
                         </Link>
@@ -134,12 +130,10 @@ export default function Dashboard() {
                 </div>
             )}
 
-            <div className={`grid ${userRole === "ADMIN" ? "grid-cols-3" : "grid-cols-2"} gap-5 px-10 py-5 border`}>
-                {dashboardItems
-                    .filter((item) => item.roles.includes(userRole))
-                    .map((item, i) => (
-                        <DashboardCard key={i} {...item} />
-                    ))}
+            <div className={`grid grid-cols-3 gap-5 px-10 py-5 border bg-gray-50 rounded-lg shadow-lg`}> 
+                {dashboardItems.filter(item => item.roles.includes(userRole)).map((item, i) => (
+                    <DashboardCard key={i} {...item} />
+                ))}
             </div>
         </div>
     );

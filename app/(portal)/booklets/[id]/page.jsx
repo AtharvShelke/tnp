@@ -1,103 +1,101 @@
-'use client'
+'use client';
+
 import { getRequest } from '@/lib/apiRequest';
-import formDateFromString from '@/lib/formDateFromString';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function BookletPage() {
-    const params = useParams();
-    const { id } = params;
+    const { id } = useParams();
     const [booklet, setBooklet] = useState(null);
-
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchBooklet = async (id) => {
-            // booklets/${id}
+        const fetchBooklet = async () => {
             try {
-                const data = await getRequest(`booklets/${id}`)
+                const data = await getRequest(`booklets/${id}`);
                 setBooklet(data);
-                setLoading(false);  
             } catch (error) {
                 console.error("Error fetching data:", error);
+            } finally {
                 setLoading(false);
             }
         };
-        fetchBooklet(id);
+        fetchBooklet();
     }, [id]);
 
-    useEffect(() => {
-        if (loading) {
-            console.log('Loading...');
-        } else if (booklet) {
-            console.log('frontend:', booklet);
-
-        } else {
-            console.log('no booklet');
-        }
-    }, [booklet, loading]);
-
-
-
-
-
-
-
     return (
-        // <>{loading?'Loading...':activity.imageUrl}</>
-        <div className="border max-w-screen-xl my-5 mx-5 rounded-xl shadow-lg bg-white">
-
-            <div className="flex items-center justify-between py-5 px-6 border-b bg-gray-50">
+        <div className="max-w-screen-lg mx-auto my-5 p-6 bg-white border rounded-xl shadow-lg">
+            {/* Header Section */}
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 bg-gray-50 px-6">
                 <div className="flex items-center gap-4">
-                    <img
-                        className="w-30 h-24  object-contain"
-                        src={loading ? '/logo.jpg' : booklet.imageUrl || '/logo.jpg'}
-                        alt="Profile"
-                    />
+                    {/* Booklet Image */}
+                    {loading ? (
+                        <div className="w-32 h-24 bg-gray-300 animate-pulse rounded-md" />
+                    ) : (
+                        <img
+                            className="w-32 h-24 object-contain rounded-md"
+                            src={booklet?.imageUrl || '/logo.jpg'}
+                            alt="Booklet"
+                        />
+                    )}
+
+                    {/* Title */}
                     <div className="font-medium">
-                        <div className="font-bold text-xl">
-                            {loading ? 'Loading' : booklet.title}
+                        <div className="font-bold text-xl text-gray-800">
+                            {loading ? <div className="w-48 h-6 bg-gray-300 animate-pulse rounded-md"></div> : booklet?.title}
                         </div>
-
-
-
                     </div>
-
                 </div>
+
+                {/* Download Button */}
                 <div>
-                    <div className="text-sm text-gray-600 flex gap-1 items-center">
-
-                        <a href={loading ? '#' : booklet.pdfUrl} download className="border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all">
-                            {loading ? 'Loading...' : 'Download'}
+                    {loading ? (
+                        <div className="w-32 h-10 bg-gray-300 animate-pulse rounded-md" />
+                    ) : (
+                        <a
+                            href={booklet?.pdfUrl}
+                            download
+                            className="border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+                        >
+                            Download PDF
                         </a>
-                    </div>
-
+                    )}
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3">
+
+            {/* Content Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Sidebar - Departments */}
                 <div className="col-span-1 border-r bg-gray-50 px-6 py-4">
-
-
-                    <h2 className="text-lg font-bold mt-6 mb-2">Departments</h2>
-                    <ul className="list-disc ml-6 text-gray-600">
-                        {loading ? 'Loading' : booklet.bookletDepartments.map((round, i) => (
-                            <li key={i}>{round.title}</li>
-                        ))}
-                    </ul>
-
-
-
-
-                </div>
-                <div className="relative col-span-2 px-6 py-4">
-
-                    <h2 className="text-lg font-bold mb-3">Booklet pdf</h2>
-                    <iframe src={loading ? '#' : booklet.pdfUrl}  frameBorder="0" width={'100%'} height={'600px'}></iframe>
-
-
-
+                    <h2 className="text-lg font-bold mb-3">Departments</h2>
+                    {loading ? (
+                        <div className="h-20 bg-gray-300 animate-pulse rounded-md"></div>
+                    ) : (
+                        <ul className="list-disc ml-6 text-gray-600">
+                            {booklet?.bookletDepartments?.length > 0 ? (
+                                booklet.bookletDepartments.map((dept, i) => (
+                                    <li key={i}>{dept.title}</li>
+                                ))
+                            ) : (
+                                <li>No departments available</li>
+                            )}
+                        </ul>
+                    )}
                 </div>
 
+                {/* Main Content - PDF Viewer */}
+                <div className="col-span-2 px-6 py-4">
+                    <h2 className="text-lg font-bold mb-3">Preview</h2>
+                    {loading ? (
+                        <div className="w-full h-[600px] bg-gray-300 animate-pulse rounded-md"></div>
+                    ) : (
+                        <iframe
+                            src={booklet?.pdfUrl}
+                            className="w-full h-[600px] rounded-md border"
+                            frameBorder="0"
+                        ></iframe>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -23,7 +23,7 @@ export default function DrivePage() {
 
   const handleEdit = () => {
     setShowModal(true);
-    
+
   };
 
   const handleCloseModal = () => {
@@ -110,17 +110,17 @@ export default function DrivePage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center my-10">
-       ...loading
+        ...loading
       </div>
     );
   }
 
-  
+
 
   const handleDelete = async (driveId) => {
     const confirmation = window.confirm("Are you sure you want to delete this drive?");
     if (!confirmation) return;
-  
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives/application/${driveId}`, {
         method: 'DELETE',
@@ -129,11 +129,10 @@ export default function DrivePage() {
         },
         body: JSON.stringify({ driveId }),
       });
-  
+
       const result = await response.json();
       if (response.ok) {
         alert(result.message);
-        // Redirect to the list of all drives after deletion
         router.push('/drives');
       } else {
         alert(result.error);
@@ -143,8 +142,8 @@ export default function DrivePage() {
       alert("An error occurred while deleting the drive.");
     }
   };
-  
-  
+
+
 
 
 
@@ -165,8 +164,13 @@ export default function DrivePage() {
         </div>
         <div>
           <div className="text-sm font-semibold text-gray-600 flex gap-1 items-center">
-            <a onClick={()=> handleEdit()} className="px-3 font-medium text-blue-600  hover:underline cursor-pointer">Edit</a>
-            <a onClick={() => handleDelete(drive.id)} className="px-3 mr-2 font-medium text-red-600  hover:underline cursor-pointer">Delete</a>
+            {session?.user?.role === 'ADMIN' && (
+              <>
+                <a onClick={() => handleEdit()} className="px-3 font-medium text-blue-600  hover:underline cursor-pointer">Edit</a>
+                <a onClick={() => handleDelete(drive.id)} className="px-3 mr-2 font-medium text-red-600  hover:underline cursor-pointer">Delete</a>
+              </>
+            )}
+
             {session?.user?.role === 'STUDENT' ? (
               <>
                 <a
@@ -196,7 +200,7 @@ export default function DrivePage() {
                 View Applied Student
               </a>
             )}
-            
+
           </div>
         </div>
       </div>
@@ -212,25 +216,25 @@ export default function DrivePage() {
           <p className="text-gray-600">{drive.bond}</p>
           <h2 className="text-lg font-bold mt-6 mb-2">Departments</h2>
           <ul className="list-disc ml-6 text-gray-600">
-              {drive?.driveDepartments?.length > 0 ? (
-                drive.driveDepartments.map((department, i) => (
-                  <li key={i}>{department.title}</li>
-                ))
-              ) : (
-                <li>No departments available</li>
-              )}
-            </ul>
+            {drive?.driveDepartments?.length > 0 ? (
+              drive.driveDepartments.map((department, i) => (
+                <li key={i}>{department.title}</li>
+              ))
+            ) : (
+              <li>No departments available</li>
+            )}
+          </ul>
 
-            <h2 className="text-lg font-bold mt-6 mb-2">Rounds</h2>
-            <ul className="list-disc ml-6 text-gray-600">
-              {drive?.rounds?.length > 0 ? (
-                drive.rounds.map((round, i) => (
-                  <li key={i}>{round.title}</li>
-                ))
-              ) : (
-                <li>No rounds available</li>
-              )}
-            </ul>
+          <h2 className="text-lg font-bold mt-6 mb-2">Rounds</h2>
+          <ul className="list-disc ml-6 text-gray-600">
+            {drive?.rounds?.length > 0 ? (
+              drive.rounds.map((round, i) => (
+                <li key={i}>{round.title}</li>
+              ))
+            ) : (
+              <li>No rounds available</li>
+            )}
+          </ul>
 
         </div>
         <div className="relative col-span-2 px-6 py-4">

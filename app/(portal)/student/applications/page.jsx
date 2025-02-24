@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import  { useEffect, useState } from 'react';
 import MyApplicationTable from '@/components/dashboard/MyApplicationTable';
 import { useSession } from 'next-auth/react';
 import formDateFromString from '@/lib/formDateFromString';
@@ -19,7 +19,6 @@ export default function Page() {
         const data = await getRequest(`application/${userId}`);
         const applicationsData = data.application || [];
 
-        // Fetch drive details for each application using Promise.all
         const formattedApplications = await Promise.all(
           applicationsData.map(async (app) => {
             const drive = await getRequest(`drives/${app.driveId}`);
@@ -42,14 +41,16 @@ export default function Page() {
     fetchApplications();
   }, [userId]);
 
-  const columns = ['Reference Number', 'Title', 'Date of Application', 'Status'];
+  const columns = ['Reference Number', 'Title', 'Date of Application', 'Status', 'Action'];
 
   return (
-    <div className='py-12 px-10'>
-      <div className='font-bold mb-5 flex justify-between items-center'>
-        <h1 className='text-xl'>My Applications</h1>
+    <div className='py-12 px-10 bg-gray-100 min-h-screen'>
+      <div className='font-bold mb-5 flex justify-between items-center bg-white p-6 rounded-lg shadow-md'>
+        <h1 className='text-2xl text-gray-900'>My Applications</h1>
       </div>
-      <MyApplicationTable columns={columns} data={applications} />
+      <div className='bg-white p-6 rounded-lg shadow-md'>
+        <MyApplicationTable columns={columns} data={applications} />
+      </div>
     </div>
   );
 }
