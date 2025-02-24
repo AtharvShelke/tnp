@@ -3,12 +3,18 @@ import { NextResponse } from "next/server";
 
 export const POST = async (request) => {
     try {
-        const data = await request.json();
+        let data;
+        try {
+            data = await request.json();
+        } catch (error) {
+            return NextResponse.json({ error: "Invalid JSON format" }, { status: 400 });
+        }
+
         const { userId, phone, about, linkedIn, company, companyDescription, isProfileComplete } = data;
 
         console.log("Backend received data: ", data);
 
-        // Validate required fields
+        // ✅ Check required fields
         if (!userId || !phone || !linkedIn || !company) {
             return NextResponse.json(
                 { error: "Missing required fields. userId, phone, linkedIn, and company are mandatory." },
@@ -16,19 +22,19 @@ export const POST = async (request) => {
             );
         }
 
-        // Check if user exists
+        // ✅ Ensure user exists
         const user = await db.user.findUnique({ where: { id: userId } });
         if (!user) {
             return NextResponse.json({ error: "User not found." }, { status: 404 });
         }
 
-        // Check if recruiter already exists
+        // ✅ Check if recruiter already exists
         const existingRecruiter = await db.recruiter.findUnique({ where: { userId } });
         if (existingRecruiter) {
             return NextResponse.json({ error: "Recruiter profile already exists." }, { status: 409 });
         }
 
-        // Create new recruiter entry
+        // ✅ Create new recruiter profile
         const newRecruiter = await db.recruiter.create({
             data: {
                 userId,
@@ -37,15 +43,15 @@ export const POST = async (request) => {
                 linkedIn,
                 company,
                 companyDescription,
-                isProfileComplete
-            }
+                isProfileComplete: true,
+            },
         });
 
-        // Update user role to "RECRUITER" if not already set
-        if (user.role !== "RECRUITER") {
+        // ✅ Update user role if necessary
+        if (!["RECRUITER"].includes(user.role)) {
             await db.user.update({
                 where: { id: userId },
-                data: { role: "RECRUITER" }
+                data: { role: "RECRUITER" },
             });
         }
 
@@ -64,14 +70,14 @@ export const POST = async (request) => {
 };
 
 export const GET = async () => {
-  try {
-    const recruiters = await db.recruiter.findMany();
-    return NextResponse.json(recruiters, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching recruiters:", error);
-    return NextResponse.json(
-      { message: "Failed to fetch recruiters. Please try again later." },
-      { status: 500 }
-    );
-  }
+    try {
+        const recruiters = await db.recruiter.findMany();
+        return NextResponse.json(recruiters, { status: 200 });
+    } catch (error) {
+        console.error("Error fetching recruiters:", error);
+        return NextResponse.json(
+            { message: "Failed to fetch recruiters. Please try again later." },
+            { status: 500 }
+        );
+    }
 };

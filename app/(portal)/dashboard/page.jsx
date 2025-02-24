@@ -43,6 +43,7 @@ export default function Dashboard() {
         }
 
         const fetchData = async () => {
+            console.log(session?.user?.role)
             try {
                 const [coordinatorCount, studentCount, driveCount, activityCount, bookletCount, recruiterCount, coordinatorData] = await Promise.all([
                     getRequest("coordinator/count"),
