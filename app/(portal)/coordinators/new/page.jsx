@@ -46,7 +46,7 @@ export default function NewCoordinator({ initialData = {}, isUpdate = false }) {
       try {
         const result = await getRequest(`coordinator/${userId}`)
         setCoordinatorFlag(result.isCoordinator)
-        console.log(result)
+        
         setData(result.data);
       } catch (error) {
         console.error("Error fetching data:", error);
