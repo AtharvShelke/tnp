@@ -12,11 +12,12 @@ import ImageInput from "@/components/FormInput/ImageInput";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { getRequest } from "@/lib/apiRequest";
+import { useSession } from "next-auth/react";
 
 export default function NewDrive({ initialData = {}, isUpdate = false }) {
   const [departments, setDepartments] = useState([]);
-  const [selectedDepartments, setSelectedDepartments] = useState([]); 
-  const [dropdownOpen, setDropdownOpen] = useState(false); 
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -26,20 +27,18 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
     };
     fetchDepartments();
   }, []);
-
+  const { data: session, status } = useSession();
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
   const handleCheckboxChange = (department) => {
     setSelectedDepartments((prev) => {
-      const exists = prev.some((dept) => dept.title === department.title);
+      const exists = prev.some((dept) => dept.id === department.id);
       if (exists) {
-
-        return prev.filter((dept) => dept.title !== department.title);
+        return prev.filter((dept) => dept.id !== department.id);
       } else {
-
-        return [...prev, { title: department.title }];
+        return [...prev, { id: department.id, title: department.title }];
       }
     });
   };
@@ -58,13 +57,15 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
 
-  
+
   const router = useRouter();
 
   const { fields, append, remove } = useFieldArray({ control, name: "rounds" });
 
   const onSubmit = async (data) => {
+
     setLoading(true);
+    data.creatorId = session?.user?.id;
     data.imageUrl = imageUrl;
     data.driveDepartments = selectedDepartments;
 
@@ -138,18 +139,19 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
                   >
                     <input
                       type="checkbox"
-                      checked={selectedDepartments.some((dept) => dept.title === department.title)}
+                      checked={selectedDepartments.some((dept) => dept.id === department.id)}
                       onChange={() => handleCheckboxChange(department)}
                       className="mr-2"
                     />
                     {department.title}
                   </label>
                 ))}
+
               </div>
             )}
           </div>
 
-          
+
 
           <TextInput
             label="Industry Type"
@@ -249,20 +251,20 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
         </div>
 
         <div className="flex gap-5">
-        <DateInput
-          label={"Date of Drive"}
-          name={"driveDate"}
-          register={register}
-          errors={errors}
-          className="w-1/2 mb-5"
-        />
-        <DateInput
-          label={"Last Date of Drive"}
-          name={"lastDriveDate"}
-          register={register}
-          errors={errors}
-          className="w-1/2 mb-5"
-        />
+          <DateInput
+            label={"Date of Drive"}
+            name={"driveDate"}
+            register={register}
+            errors={errors}
+            className="w-1/2 mb-5"
+          />
+          <DateInput
+            label={"Last Date of Drive"}
+            name={"lastDriveDate"}
+            register={register}
+            errors={errors}
+            className="w-1/2 mb-5"
+          />
         </div>
         <ImageInput
           label="Drive Image"

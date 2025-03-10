@@ -113,16 +113,13 @@ export default function AllStudentsPage() {
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
-
     XLSX.writeFile(workbook, 'students.xlsx');
   };
   if (studentData) {
-    console.log(studentData)
     return (
-      <div className='py-12 px-10 max-w-[1250px]'>
+      <div className=' py-12 sm:w-[80vw] w-[90vw] md:px-10 mx-auto'>
         <div className='font-bold mb-5 flex justify-between items-center'>
           <h1 className='text-xl'>All Students</h1>
           <button

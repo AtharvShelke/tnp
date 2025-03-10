@@ -11,6 +11,7 @@ export default function ApplicationPage() {
         const fetchApplications = async () => {
             
             const response = await getRequest('drives/application')
+            console.log(response)
             setData(response);
         };
         fetchApplications();
@@ -18,7 +19,7 @@ export default function ApplicationPage() {
     const columns = ['Reference Number', 'Title', 'PRN', 'Name', 'Department', 'Status', 'Is Placed']
     return (
         <>
-            <div className='py-12 px-10 max-w-[1250px]'>
+            <div className=' py-12 sm:w-[80vw] w-[90vw] md:px-10 mx-auto'>
                 <div className='font-bold mb-5 flex justify-between items-center'>
                     <h1 className='text-xl'>All Students</h1>
                 </div>

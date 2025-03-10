@@ -61,45 +61,48 @@ export default function Sidebar() {
         { name: "Booklets", icon: <FileChartColumn />, href: "/booklets" },
       ]);
     } else {
-      setLinks([]);
+      setLinks([
+        { name: "Dashboard", icon: <LayoutDashboard />, href: "/dashboard" },
+        { name: "Profile", icon: <CircleUserRound />, href: "/profile" },
+        { name: "Drives", icon: <CopyCheck />, href: "/drives" },
+        { name: "My Posts", icon: <CopyCheck />, href: "/posts" },
+        { name: "Students", icon: <Users />, href: "/students" },
+        { name: "Shortlisted Students", icon: <UserSearch />, href: "/recruiter" },
+      ]);
     }
   }, [session]);
 
   return (
     <>
-      {/* Toggle Button */}
       <button
         onClick={toggleSidebar}
-        className="md:hidden p-2 text-gray-200 bg-gray-800 rounded-lg fixed top-3 left-4 z-50 shadow-lg hover:bg-gray-700 transition"
+        className="md:hidden p-2 text-white bg-gray-800 rounded-lg fixed top-1 left-1 z-50 shadow-lg hover:bg-gray-700 transition-all"
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
       </button>
 
-      {/* Sidebar */}
       <aside
-        className={`fixed md:flex flex-col w-64 h-screen bg-gray-900 shadow-xl border-r border-gray-700 px-5 py-6 z-40 transform transition-all duration-300 ${
+        className={`fixed md:flex flex-col w-64 h-screen bg-gray-900 shadow-xl border-r border-gray-700 px-6 py-8 z-40 transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
-        {/* User Profile Section */}
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-col items-center mb-4">
           <img
-            className="object-cover w-20 h-20 rounded-full border-2 border-gray-600"
+            className="object-cover w-24 h-24 rounded-full border-4 border-gray-600 shadow-lg"
             src={session?.user?.pfp || "/logo.jpg"}
-            alt="avatar"
+            alt="User Avatar"
           />
-          <h4 className="mt-2 font-semibold text-gray-200">{session?.user?.name}</h4>
+          <h4 className="mt-3 text-lg font-semibold text-white">{session?.user?.name}</h4>
           <p className="text-sm text-gray-400">{session?.user?.email}</p>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="space-y-2">
+        <nav className="">
           {links.map((link, i) => (
             <a
               key={i}
               href={link.href}
-              className={`flex items-center p-3 rounded-lg transition-all duration-300 text-gray-400 hover:bg-gray-800 hover:text-gray-200 ${
-                path.includes(link.href) ? "bg-gray-800 text-gray-200" : ""
+              className={`flex items-center px-3 py-[0.75rem] rounded-xl transition-all duration-300 text-gray-300 hover:bg-gray-800 hover:text-white ${
+                path.includes(link.href) ? "bg-gray-800 text-white" : ""
               }`}
             >
               {link.icon}
@@ -109,7 +112,6 @@ export default function Sidebar() {
         </nav>
       </aside>
 
-      {/* Overlay for small screens */}
       {isOpen && (
         <div
           onClick={toggleSidebar}

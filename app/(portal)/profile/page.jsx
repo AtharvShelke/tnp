@@ -1,4 +1,5 @@
 'use client';
+import Loader from '@/components/Loader';
 import { getRequest } from '@/lib/apiRequest';
 import { Mail, Phone, University, UserRoundPen } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -51,9 +52,7 @@ export default function ProfilePage() {
 
     if (loading) {
       return (
-        <div className='min-h-screen flex items-center justify-center'>
-          <p className='text-lg font-semibold text-gray-700 animate-pulse'>Loading...</p>
-        </div>
+        <Loader/>
       );
     }
 

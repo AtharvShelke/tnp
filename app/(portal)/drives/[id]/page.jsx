@@ -2,13 +2,11 @@
 import { getRequest } from '@/lib/apiRequest';
 import formDateFromString from '@/lib/formDateFromString';
 import { useSession } from 'next-auth/react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import EditDriveModal from './model/EditDriveModal';
-import { useRouter } from 'next/navigation';
-
-
+import Loader from '@/components/Loader';
 
 export default function DrivePage() {
   const params = useParams();
@@ -21,51 +19,30 @@ export default function DrivePage() {
   const [showModal, setShowModal] = useState(false);
   const userId = session?.user?.id;
 
-  const handleEdit = () => {
-    setShowModal(true);
-
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
   useEffect(() => {
     const fetchAppl = async () => {
-      const data = {
-        userId: userId,
-        driveId: id,
-      };
-
+      if (!userId) return;
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives/application/${userId}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, driveId: id }),
         });
 
         const result = await response.json();
-
-        if (response.ok && result.message === 'Application already exists') {
-          setApplied(true);
-        } else {
-          setApplied(false);
-        }
+        setApplied(response.ok && result.message === 'Application already exists');
       } catch (error) {
         console.error('Error fetching applications:', error);
       }
     };
 
-    if (userId) fetchAppl();
+    fetchAppl();
   }, [userId, id]);
 
   useEffect(() => {
     const fetchDrives = async () => {
-      // drives/${id}
       try {
-        const data = await getRequest(`drives/${id}`)
+        const data = await getRequest(`drives/${id}`);
         setDrive({
           ...data,
           driveDate: formDateFromString(data.driveDate),
@@ -78,12 +55,12 @@ export default function DrivePage() {
       }
     };
 
-    if (id) fetchDrives();
+    fetchDrives();
   }, [id]);
 
   const apply = async () => {
     if (!userId) {
-      toast.error('User is not logged in or invalid session.');
+      toast.error('Please log in to apply.');
       return;
     }
 
@@ -94,168 +71,143 @@ export default function DrivePage() {
         body: JSON.stringify({ userId, driveId: id, status: 'Pending' }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
         toast.success('Successfully applied for the drive');
         setApplied(true);
       } else {
+        const data = await response.json();
         toast.error(`Error: ${data.error || 'An error occurred'}`);
       }
     } catch (error) {
-      toast.error('Network error occurred. Please try again.');
+      toast.error('Network error. Please try again.');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center my-10">
-        ...loading
-      </div>
-    );
-  }
-
-
-
   const handleDelete = async (driveId) => {
-    const confirmation = window.confirm("Are you sure you want to delete this drive?");
-    if (!confirmation) return;
+    if (!window.confirm("Are you sure you want to delete this drive?")) return;
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/drives/application/${driveId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ driveId }),
       });
 
       const result = await response.json();
       if (response.ok) {
-        alert(result.message);
+        toast.success(result.message);
         router.push('/drives');
       } else {
-        alert(result.error);
+        toast.error(result.error);
       }
     } catch (error) {
-      console.error("Error deleting drive:", error);
-      alert("An error occurred while deleting the drive.");
+      toast.error("An error occurred while deleting the drive.");
     }
   };
 
-
-
-
+  if (loading) {
+    return (
+      <Loader/>
+    );
+  }
 
   return (
-    <div className="border max-w-screen-xl my-5 mx-5 rounded-xl shadow-lg bg-white">
-      <div className="flex items-center justify-between py-5 px-6 border-b bg-gray-50">
+    <div className="max-w-screen-lg mx-auto my-8 p-6 rounded-xl shadow-lg bg-white dark:bg-gray-900 dark:text-gray-200">
+      <div className="flex flex-col md:flex-row items-center justify-between p-6 border-b bg-gray-100 dark:bg-gray-800 rounded-t-xl">
         <div className="flex items-center gap-4">
           <img
-            className="w-30 h-24 object-contain"
+            className="w-24 h-24 object-cover rounded-lg shadow-md"
             src={drive?.imageUrl || '/logo.jpg'}
             alt="Drive"
           />
-          <div className="font-medium">
-            <div className="font-bold text-xl">{drive.title}</div>
-            <div className="text-sm text-gray-600 flex gap-1 items-center">{drive.industryType}</div>
-            <div className="text-sm text-gray-600 flex gap-1 items-center">{drive.referenceNumber}</div>
+          <div>
+            <h1 className="font-bold text-2xl">{drive?.title}</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{drive?.industryType}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{drive?.referenceNumber}</p>
           </div>
         </div>
-        <div>
-          <div className="text-sm font-semibold text-gray-600 flex gap-1 items-center">
-            {session?.user?.role === 'ADMIN' && (
-              <>
-                <a onClick={() => handleEdit()} className="px-3 font-medium text-blue-600  hover:underline cursor-pointer">Edit</a>
-                <a onClick={() => handleDelete(drive.id)} className="px-3 mr-2 font-medium text-red-600  hover:underline cursor-pointer">Delete</a>
-              </>
-            )}
+        <div className="mt-4">
+  {session?.user?.role === 'ADMIN' && (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <a
+        href={`/drives/${id}/application`}
+        className="w-full sm:w-auto text-center px-4 py-2 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800 transition"
+      >
+        View Applications
+      </a>
+      <button
+        onClick={() => setShowModal(true)}
+        className="w-full sm:w-auto text-center px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition"
+      >
+        Edit
+      </button>
+      <button
+        onClick={() => handleDelete(drive.id)}
+        className="w-full sm:w-auto text-center px-4 py-2 bg-rose-600 text-white font-semibold rounded-lg shadow-md hover:bg-rose-700 transition"
+      >
+        Delete
+      </button>
+    </div>
+  )}
 
-            {session?.user?.role === 'STUDENT' ? (
-              <>
-                <a
-                  href={drive.link}
-                  className="border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white transition-all"
-                >
-                  Application Link
-                </a>
-                {applied ? (
-                  <button
-                    disabled
-                    className="border border-green-700 px-4 py-2 rounded-md bg-green-700 text-white"
-                  >
-                    Applied
-                  </button>
-                ) : (
-                  <button
-                    onClick={apply}
-                    className="border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white"
-                  >
-                    Apply
-                  </button>
-                )}
-              </>
-            ) : (
-              <a href={`${process.env.NEXT_PUBLIC_BASE_URL}/drives/${id}/application`} className="border border-gray-900 px-4 py-2 rounded-md text-gray-900 hover:bg-gray-900 hover:text-white">
-                View Applied Student
-              </a>
-            )}
+  {session?.user?.role === 'STUDENT' ? (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center mt-4">
+      <a
+        href={drive?.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full sm:w-auto text-center px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition"
+      >
+        Application Link
+      </a>
+      <button
+        onClick={apply}
+        disabled={applied}
+        className={`w-full sm:w-auto text-center px-4 py-2 font-semibold rounded-lg shadow-md transition ${applied
+          ? 'bg-green-600 text-white cursor-not-allowed'
+          : 'bg-gray-800 text-white hover:bg-gray-900'
+        }`}
+      >
+        {applied ? 'Applied' : 'Apply'}
+      </button>
+    </div>
+  ) : session?.user?.role === 'RECRUITER' && session?.user?.id === drive.creatorId ? (
+    <a
+      href={`/drives/${id}/application`}
+      className="w-full sm:w-auto text-center px-4 py-2 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800 transition mt-4"
+    >
+      View Applications
+    </a>
+  ) : null}
+</div>
 
-          </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-md shadow-md">
+          <h2 className="text-lg font-semibold">Job Details</h2>
+          <p><strong>Location:</strong> {drive?.location}</p>
+          <p><strong>Role:</strong> {drive?.role}</p>
+          <p><strong>CTC:</strong> {drive?.ctc}</p>
+          <p><strong>Bond:</strong> {drive?.bond}</p>
+          <h2 className="text-lg font-semibold mt-4">Departments</h2>
+          <ul className="list-disc ml-6">
+            {drive?.driveDepartments?.length ? drive.driveDepartments.map((d, i) => <li key={i}>{d.title}</li>) : <li>No departments available</li>}
+          </ul>
+        </div>
+
+        <div className="col-span-2 p-6 bg-gray-50 dark:bg-gray-800 rounded-md shadow-md">
+          <h2 className="text-lg font-semibold">Drive Information</h2>
+          <p><strong>Drive Date:</strong> {drive?.driveDate}</p>
+          <p><strong>Last Date:</strong> {drive?.lastDriveDate}</p>
+          <h2 className="text-lg font-semibold mt-4">Description</h2>
+          <p>{drive?.description}</p>
+          <h2 className="text-lg font-semibold mt-4">Eligibility</h2>
+          <p>{drive?.eligibility}</p>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3">
-        <div className="col-span-1 border-r bg-gray-50 px-6 py-4">
-          <h2 className="text-lg font-bold mb-2">Job Location</h2>
-          <p className="text-gray-600">{drive.location}</p>
-          <h2 className="text-lg font-bold mt-6 mb-2">Job Role</h2>
-          <p className="text-gray-600">{drive.role}</p>
-          <h2 className="text-lg font-bold mt-6 mb-2">Job CTC</h2>
-          <p className="text-gray-600">{drive.ctc}</p>
-          <h2 className="text-lg font-bold mt-6 mb-2">Bond requirement</h2>
-          <p className="text-gray-600">{drive.bond}</p>
-          <h2 className="text-lg font-bold mt-6 mb-2">Departments</h2>
-          <ul className="list-disc ml-6 text-gray-600">
-            {drive?.driveDepartments?.length > 0 ? (
-              drive.driveDepartments.map((department, i) => (
-                <li key={i}>{department.title}</li>
-              ))
-            ) : (
-              <li>No departments available</li>
-            )}
-          </ul>
 
-          <h2 className="text-lg font-bold mt-6 mb-2">Rounds</h2>
-          <ul className="list-disc ml-6 text-gray-600">
-            {drive?.rounds?.length > 0 ? (
-              drive.rounds.map((round, i) => (
-                <li key={i}>{round.title}</li>
-              ))
-            ) : (
-              <li>No rounds available</li>
-            )}
-          </ul>
-
-        </div>
-        <div className="relative col-span-2 px-6 py-4">
-          <h2 className="text-lg font-bold mb-3">Drive Date</h2>
-          <p className="text-gray-600">{drive.driveDate}</p>
-          <h2 className="text-lg font-bold mb-3">Last Date</h2>
-          <p className="text-gray-600">{drive.lastDriveDate}</p>
-          <h2 className="text-lg font-bold my-3">About</h2>
-          <p className="text-gray-600">{drive.about}</p>
-          <h2 className="text-lg font-bold my-3">Job Description</h2>
-          <p className="text-gray-600">{drive.description}</p>
-          <h2 className="text-lg font-bold my-3">Job Eligibility</h2>
-          <p className="text-gray-600">{drive.eligibility}</p>
-        </div>
-      </div>
-      <EditDriveModal
-        show={showModal}
-        handleClose={handleCloseModal}
-        drive={drive}
-        setDrive={setDrive}
-      />
+      <EditDriveModal show={showModal} handleClose={() => setShowModal(false)} drive={drive} setDrive={setDrive} />
     </div>
   );
 }

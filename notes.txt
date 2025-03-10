@@ -1,9 +1,1 @@
-
-    user   
-        |    id    |    name    |    email    |    password    |    pfp    |    role    |
-    recruiter
-        |    id    |    company    |    phone    |    designation    |    linkedIn profile    |    account status
-    
-    recruiter can create a drive
-    control applied students
-    
+https://excalidraw.com/#json=a23dzL8HEC76avraQ-S8W,F6zpRGUMB1O0xxCGHHqkqA

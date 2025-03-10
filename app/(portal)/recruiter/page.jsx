@@ -190,7 +190,7 @@ const RecruiterManagement = () => {
     );
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-6 bg-slate-100 min-h-screen">
             <div className="max-w-5xl mx-auto">
                 <RecruiterTable title="Pending Recruiters" recruiters={pendingRecruiters} showStatus={true} isPending={true} />
                 <RecruiterTable title="Approved Recruiters" recruiters={approvedRecruiters} showStatus={false} isPending={false} />

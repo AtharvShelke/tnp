@@ -42,10 +42,11 @@ model Activity {
 }
 
 model Drive {
-  id              String @id @default(auto()) @map("_id") @db.ObjectId
-  referenceNumber String
-  title           String
-
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  referenceNumber  String
+  title            String
+  creator          User?              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId        String?            @db.ObjectId @default("null")
   industryType     String
   ctc              String
   about            String
@@ -119,12 +120,14 @@ model User {
 
   RecruiterApproval RecruiterApproval?
   Recruiter         Recruiter?
+  Drive             Drive[]
 }
 
 model Student {
-  id                String            @id @default(auto()) @map("_id") @db.ObjectId
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            String            @unique @db.ObjectId
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique @db.ObjectId
+
   isProfileComplete Boolean
   PRN               String
   department        Department        @relation(fields: [departmentId], references: [id], onDelete: Cascade)

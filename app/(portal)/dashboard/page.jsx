@@ -1,8 +1,9 @@
 "use client";
 
 import DashboardCard from "@/components/dashboard/DashboardCard";
+import Loader from "@/components/Loader";
 import { getRequest } from "@/lib/apiRequest";
-import { User, Loader2, AlertTriangle } from "lucide-react";
+import { User, Briefcase, FileText, Users, Building, AlertTriangle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,27 +14,28 @@ export default function Dashboard() {
     const router = useRouter();
     const userId = session?.user?.id;
     const userRole = session?.user?.role;
+    
     const [counts, setCounts] = useState({
         students: 0,
-        coordinators: 0,
         drives: 0,
+        recruiters: 0,
+        coordinators: 0,
         activities: 0,
         booklets: 0,
-        recruiters: 0,
     });
 
-    const [isCoordinator, setIsCoordinator] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [recruiterStatus, setRecruiterStatus] = useState(null);
 
+    // Dashboard items based on user roles
     const dashboardItems = useMemo(() => [
-        { name: "Students", number: counts.students, icon: <User />, href: "/students", roles: ["ADMIN", "COORDINATOR"] },
-        { name: "Coordinator", number: counts.coordinators, icon: <User />, href: "/coordinators", roles: ["ADMIN"] },
-        { name: "Drives", number: counts.drives, icon: <User />, href: "/drives", roles: ["ADMIN", "COORDINATOR"] },
-        { name: "Activities", number: counts.activities, icon: <User />, href: "/activities", roles: ["ADMIN", "COORDINATOR"] },
-        { name: "Booklets", number: counts.booklets, icon: <User />, href: "/booklets", roles: ["ADMIN", "COORDINATOR"] },
-        { name: "Recruiters", number: counts.recruiters, icon: <User />, href: "/dashboard", roles: ["ADMIN", "COORDINATOR"] },
+        { name: "Students", number: counts.students, icon: <Users className="text-blue-500" />, href: "/students", roles: ["ADMIN", "COORDINATOR", "RECRUITER"] },
+        { name: "Hiring Drives", number: counts.drives, icon: <Briefcase className="text-green-500" />, href: "/drives", roles: ["ADMIN", "COORDINATOR", "RECRUITER"] },
+        { name: "Recruiters", number: counts.recruiters, icon: <Building className="text-orange-500" />, href: "/recruiters", roles: ["ADMIN", "COORDINATOR"] },
+        { name: "Coordinators", number: counts.coordinators, icon: <User className="text-purple-500" />, href: "/coordinators", roles: ["ADMIN"] },
+        { name: "Activities", number: counts.activities, icon: <FileText className="text-pink-500" />, href: "/activities", roles: ["ADMIN", "COORDINATOR"] },
+        { name: "Booklets", number: counts.booklets, icon: <FileText className="text-indigo-500" />, href: "/booklets", roles: ["ADMIN", "COORDINATOR"] },
     ], [counts]);
 
     useEffect(() => {
@@ -43,28 +45,29 @@ export default function Dashboard() {
         }
 
         const fetchData = async () => {
-            console.log(session?.user?.role)
             try {
-                const [coordinatorCount, studentCount, driveCount, activityCount, bookletCount, recruiterCount, coordinatorData] = await Promise.all([
-                    getRequest("coordinator/count"),
+                const [studentCount, driveCount, recruiterCount, coordinatorCount, activityCount, bookletCount] = await Promise.all([
                     getRequest("student/count"),
                     getRequest("drives/count"),
+                    getRequest("recruiter/count"),
+                    getRequest("coordinator/count"),
                     getRequest("activities/count"),
                     getRequest("booklets/count"),
-                    getRequest("recruiter/count"),
-                    getRequest(`coordinator/${userId}`)
                 ]);
 
                 setCounts({
                     students: studentCount,
-                    coordinators: coordinatorCount,
                     drives: driveCount,
+                    recruiters: recruiterCount,
+                    coordinators: coordinatorCount,
                     activities: activityCount,
                     booklets: bookletCount,
-                    recruiters: recruiterCount,
                 });
 
-                setIsCoordinator(coordinatorData?.isCoordinator ?? false);
+                if (userRole === "RECRUITER") {
+                    const recruiterData = await getRequest(`recruiter/${userId}`);
+                    setRecruiterStatus(recruiterData?.status ?? null);
+                }
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
                 setError(error.message);
@@ -74,67 +77,83 @@ export default function Dashboard() {
         };
 
         fetchData();
-    }, [userId]);
+    }, [userId, userRole]);
 
-    useEffect(() => {
-        if (!loading && userRole === "COORDINATOR" && !isCoordinator) {
-            router.replace("/coordinators/new");
-        }
-    }, [loading, userRole, isCoordinator, router]);
+    if (loading) return <Loader />;
+    if (error) return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-red-100 border border-red-400 text-red-800 rounded-lg shadow-md">
+            <AlertTriangle className="h-8 w-8" />
+            <p className="mt-2 font-semibold">{error}</p>
+        </div>
+    );
 
-    useEffect(() => {
-        if (!loading && userRole === "STUDENT") {
-            router.replace("/drives");
-        }
-    }, [loading, userRole, router]);
-
-    useEffect(() => {
-        const fetchRecruiterData = async () => {
-            if (!loading && userRole === "RECRUITER") {
-                try {
-                    const data = await getRequest(`recruiter/${userId}`);
-                    setRecruiterStatus(data?.status ?? null);
-                } catch (error) {
-                    console.error("Error fetching recruiter data:", error);
-                }
-            }
-        };
-        fetchRecruiterData();
-    }, [loading, userRole, userId]);
-
-    if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin h-10 w-10 text-gray-500" /></div>;
-    if (error) return <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-red-100 border border-red-400 text-red-800 rounded-lg shadow-md"><AlertTriangle className="h-8 w-8" /><p className="mt-2 font-semibold">{error}</p></div>;
-
-    if (userRole === "RECRUITER") {
-        if (recruiterStatus === "PENDING") {
-            return <div className="flex flex-col items-center justify-center min-h-[90vh] p-6 bg-gray-100 rounded-lg shadow-md border border-gray-300">
-                <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-md w-full max-w-md">
-                    <h2 className="text-lg font-semibold">Account Request Pending</h2>
-                    <p className="mt-2 text-sm">Your account request has been sent to the <strong>Training and Placement Office of MGM University</strong>. Please wait for approval. You will be notified once your account is activated.</p>
+    // Recruiter pending status message
+    if (userRole === "RECRUITER" && recruiterStatus === "PENDING") {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50 rounded-lg shadow-md border border-gray-300">
+                <div className="p-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-md w-full max-w-md">
+                    <h2 className="text-xl font-semibold">Account Request Pending</h2>
+                    <p className="mt-2 text-sm">
+                        Your account request has been sent to the <strong>Training and Placement Office</strong>.
+                        Please wait for approval.
+                    </p>
                 </div>
-            </div>;
-        }
-        return <div className="flex items-center justify-center min-h-screen text-xl font-semibold">Welcome to your recruiter dashboard</div>;
+            </div>
+        );
     }
 
     return (
-        <div className="p-6">
-            {userRole === "ADMIN" && (
-                <div className="grid grid-cols-4 px-10 py-10 gap-10 border bg-gray-50 rounded-lg shadow">
-                    {["drives", "activities", "booklets", "departments"].map((path) => (
-                        <Link key={path} href={`/${path}/new`}>
-                            <div className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center hover:bg-gray-100 transition-all cursor-pointer">
-                                Create New {path.charAt(0).toUpperCase() + path.slice(1)}
-                            </div>
-                        </Link>
+        <div className="p-8 min-h-screen bg-gray-100">
+            <div className="max-w-6xl mx-auto">
+                {/* 🌟 Role-Specific Banners */}
+                <div className={`p-6 text-white rounded-xl shadow-md text-center mb-8 ${userRole === "ADMIN" ? "bg-red-500" : userRole === "COORDINATOR" ? "bg-teal-500" : "bg-blue-500"}`}>
+                    { (userRole) ?
+                         (<h2 className="text-3xl font-semibold">
+                            Welcome, {userRole.charAt(0).toUpperCase() + userRole.slice(1)}!
+                        </h2>):<></>
+                    
+                       
+                    }
+                    <p className="mt-2 text-lg">
+                        {userRole === "ADMIN" && "Manage all placements and system operations."}
+                        {userRole === "COORDINATOR" && "Oversee recruitment activities and student interactions."}
+                        {userRole === "RECRUITER" && "Manage hiring drives and student connections."}
+                    </p>
+                </div>
+
+                {/* 📊 Dashboard Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {dashboardItems.filter(item => item.roles.includes(userRole)).map((item, i) => (
+                        <DashboardCard key={i} {...item} />
                     ))}
                 </div>
-            )}
 
-            <div className={`grid grid-cols-3 gap-5 px-10 py-5 border bg-gray-50 rounded-lg shadow-lg`}> 
-                {dashboardItems.filter(item => item.roles.includes(userRole)).map((item, i) => (
-                    <DashboardCard key={i} {...item} />
-                ))}
+                {/* ⚡ Quick Actions */}
+                <div className="mt-10 p-6 bg-white rounded-xl shadow-md">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <Link href="/drives/new">
+                            <div className="p-4 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition text-center font-semibold">
+                                + Create Drive
+                            </div>
+                        </Link>
+                        <Link href="/students">
+                            <div className="p-4 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition text-center font-semibold">
+                                View Students
+                            </div>
+                        </Link>
+                        <Link href="/reports">
+                            <div className="p-4 bg-yellow-500 text-white rounded-lg shadow-md hover:bg-yellow-600 transition text-center font-semibold">
+                                View Reports
+                            </div>
+                        </Link>
+                        <Link href="/profile">
+                            <div className="p-4 bg-gray-700 text-white rounded-lg shadow-md hover:bg-gray-800 transition text-center font-semibold">
+                                Edit Profile
+                            </div>
+                        </Link>
+                    </div>
+                </div>
             </div>
         </div>
     );

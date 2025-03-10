@@ -4,6 +4,7 @@ import { Link, UserRoundX, ChevronDown } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
+import Loader from '../Loader';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,13 +30,13 @@ export default function Header() {
   }, []);
 
   if (status === 'loading') {
-    return <p className="text-gray-600">Loading User...</p>;
+    return <Loader/>;
   }
 
   return (
     <header className="bg-white shadow-sm h-14 flex items-center justify-between px-6 border-b">
       {/* Title */}
-      <h1 className="text-xl font-semibold text-gray-800">Training & Placement</h1>
+      <h1 className="ml-10 text-xl font-semibold text-gray-800">Training & Placement</h1>
 
       {/* User Dropdown */}
       <div className="relative" ref={dropdownRef}>

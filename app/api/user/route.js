@@ -46,3 +46,16 @@ export async function POST(request) {
     );
 }
 } 
+export const GET = async () => {
+    try {
+      const users = await db.user.findMany();
+      const sanitizedUsers = users.map(({ password, ...user }) => user);
+      return NextResponse.json(sanitizedUsers, { status: 200 });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return NextResponse.json(
+        { message: "Failed to fetch users", error: error.message },
+        { status: 500 }
+      );
+    }
+  };

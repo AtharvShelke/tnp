@@ -24,7 +24,7 @@ export default function Drive({ id, title, img, date, last_date }) {
     }
 
     return (
-        <div className="w-72 bg-white border border-gray-200 rounded-xl shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl">
+        <div className="md:w-72 sm:w-full bg-white border border-gray-200 rounded-xl shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl">
             <img 
                 className="rounded-t-xl h-40 w-full object-cover" 
                 src={img} 

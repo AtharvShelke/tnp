@@ -27,7 +27,7 @@ export async function POST(req) {
             lastDriveDate,
             imageUrl,
             rounds,
-            
+            creatorId
         } = data;
 
         const drive = await prisma.drive.create({
@@ -53,6 +53,7 @@ export async function POST(req) {
                 driveDate: new Date(driveDate), 
                 lastDriveDate: new Date(lastDriveDate), 
                 imageUrl,
+                creatorId,
                 rounds: {
                     create: rounds.map((round) => ({
                         title: round.title,

@@ -1,6 +1,7 @@
 'use client';
 import CoordinatorReq from '@/components/dashboard/CoordinatorReq';
 import CoordinatorTable from '@/components/dashboard/CoordinatorTable';
+import Loader from '@/components/Loader';
 import { getRequest } from '@/lib/apiRequest';
 import { useEffect, useState } from 'react';
 import ClipLoader from "react-spinners/ClipLoader";
@@ -81,15 +82,7 @@ export default function AllCoordinatorsPage() {
   }, []);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">
-      <ClipLoader
-        color={color}
-        loading={loading}
-        size={150}
-        aria-label="Loading Spinner"
-        data-testid="loader"
-      />
-    </div>
+    return <Loader/>
   }
 
   if (error) {
