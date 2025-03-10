@@ -14,6 +14,7 @@ import {
   UserSearch,
   Menu,
   X,
+  BookPlus,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -65,9 +66,9 @@ export default function Sidebar() {
         { name: "Dashboard", icon: <LayoutDashboard />, href: "/dashboard" },
         { name: "Profile", icon: <CircleUserRound />, href: "/profile" },
         { name: "Drives", icon: <CopyCheck />, href: "/drives" },
-        { name: "My Posts", icon: <CopyCheck />, href: "/posts" },
+        { name: "My Posts", icon: <BookPlus />, href: "/posts" },
         { name: "Students", icon: <Users />, href: "/students" },
-        { name: "Shortlisted Students", icon: <UserSearch />, href: "/recruiter" },
+        { name: "Shortlisted Students", icon: <UserSearch />, href: `/shortlist/${session?.user?.id}` },
       ]);
     }
   }, [session]);
@@ -96,7 +97,7 @@ export default function Sidebar() {
           <p className="text-sm text-gray-400">{session?.user?.email}</p>
         </div>
 
-        <nav className="">
+        <nav className="flex gap-1 flex-col">
           {links.map((link, i) => (
             <a
               key={i}

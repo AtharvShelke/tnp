@@ -149,7 +149,14 @@ export default function DrivePage() {
       </button>
     </div>
   )}
-
+{session?.user?.role === 'COORDINATOR' && (
+   <a
+   href={`/drives/${id}/application`}
+   className="w-full sm:w-auto text-center px-4 py-2 bg-gray-700 text-white font-semibold rounded-lg shadow-md hover:bg-gray-800 transition mt-4"
+ >
+   View Applications
+ </a>
+)}
   {session?.user?.role === 'STUDENT' ? (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center mt-4">
       <a

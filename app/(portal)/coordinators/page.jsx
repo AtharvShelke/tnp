@@ -1,104 +1,84 @@
 'use client';
+
 import CoordinatorReq from '@/components/dashboard/CoordinatorReq';
 import CoordinatorTable from '@/components/dashboard/CoordinatorTable';
 import Loader from '@/components/Loader';
 import { getRequest } from '@/lib/apiRequest';
 import { useEffect, useState } from 'react';
-import ClipLoader from "react-spinners/ClipLoader";
 
 export default function AllCoordinatorsPage() {
-
-
-  const [req, setReq] = useState([]);
-  const [userData, setUserData] = useState([]);
-  const [coordinatorData, setCoordinatorData] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [coordinators, setCoordinators] = useState([]);
   const [loading, setLoading] = useState(true);
-  let [color, setColor] = useState("#324sdf");
   const [error, setError] = useState(null);
 
-  const columns = ['id', 'name', 'department', 'phoneNo', 'email'];
   const reqColumns = ['id', 'name', 'email', 'status'];
+  const coordinatorColumns = ['id', 'name', 'department', 'phoneNo', 'email'];
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      // coordinatorApproval
+    const fetchAllData = async () => {
       try {
+        setLoading(true);
+        // Fetch both coordinator requests and coordinators in parallel
+        const [requestsData, coordinatorsData] = await Promise.all([
+          getRequest('coordinatorApproval'),
+          getRequest('coordinator'),
+        ]);
 
-        const requests = await getRequest('coordinatorApproval')
-        setReq(requests);
+        // Fetch user data for requests in one batch
+        const userRequests = await Promise.all(
+          requestsData.map((req) => getRequest(`user/${req.userId}`))
+        );
 
+        // Map request data with user info
+        const mappedRequests = requestsData.map((req, index) => ({
+          id: req.userId,
+          name: userRequests[index]?.name || 'N/A',
+          email: userRequests[index]?.email || 'N/A',
+          status: req.status,
+        }));
 
-        if (requests.length > 0) {
-          const userPromises = requests.map(async (item) => {
+        setRequests(mappedRequests);
 
-            const user = await getRequest(`user/${item.userId}`)
-            return { ...user, status: item.status };
-          });
+        // Fetch all user and department data in one batch for coordinators
+        const userResponses = await Promise.all(
+          coordinatorsData.map((coordinator) => getRequest(`user/${coordinator.userId}`))
+        );
+        const departmentResponses = await Promise.all(
+          coordinatorsData.map((coordinator) => getRequest(`departments/${coordinator.departmentId}`))
+        );
 
-          const usersWithStatus = await Promise.all(userPromises);
-          console.log(usersWithStatus)
-          setUserData(usersWithStatus);
-        }
+        // Map coordinator data
+        const mappedCoordinators = coordinatorsData.map((coordinator, index) => ({
+          id: coordinator.userId,
+          name: userResponses[index]?.name || 'N/A',
+          email: userResponses[index]?.email || 'N/A',
+          phoneNo: coordinator.phone || 'N/A',
+          department: departmentResponses[index]?.title || 'Unknown',
+        }));
+
+        setCoordinators(mappedCoordinators);
       } catch (err) {
-        console.error('Error fetching requests:', err.message);
-        setError(err.message);
-      }
-    };
-
-    const fetchCoordinators = async () => {
-      try {
-        // coordinator
-        const coordinators = await getRequest(`coordinator`)
-
-
-        const combinedDataPromises = coordinators.map(async (coordinator) => {
-          // user/${coordinator.userId}
-          const userData = await getRequest(`user/${coordinator.userId}`)
-          // departments/${coordinator.departmentId}
-          const departmentData = await getRequest(`departments/${coordinator.departmentId}`)
-
-          return {
-            id: coordinator.userId,
-            department: departmentData.title,
-            phoneNo: coordinator.phone,
-            email: userData.email,
-            name: userData.name,
-          };
-        });
-
-        const combinedData = await Promise.all(combinedDataPromises);
-
-        setCoordinatorData(combinedData);
-      } catch (err) {
-        console.error('Error fetching coordinators:', err.message);
+        console.error('Error fetching data:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRequests();
-    fetchCoordinators();
+    fetchAllData();
   }, []);
 
-  if (loading) {
-    return <Loader/>
-  }
-
-  if (error) {
-    return <p className="text-red-500">Error: {error}</p>;
-  }
+  if (loading) return <Loader />;
+  if (error) return <p className="text-red-500 text-center">Error: {error}</p>;
 
   return (
     <div className="py-12 px-10">
       <h1 className="font-bold text-xl mb-5">Coordinator Requests</h1>
-      <CoordinatorReq columns={reqColumns} data={userData} />
+      <CoordinatorReq columns={reqColumns} data={requests} />
+
       <h1 className="font-bold text-xl my-5">All Coordinators</h1>
-      <CoordinatorTable
-        columns={columns}
-        data={coordinatorData}
-        setCoordinatorData={setCoordinatorData} // Pass state updater
-      />
+      <CoordinatorTable columns={coordinatorColumns} data={coordinators} setCoordinatorData={setCoordinators} />
     </div>
   );
 }

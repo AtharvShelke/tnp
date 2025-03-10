@@ -28,7 +28,11 @@ export default function AllStudentsPage() {
       setLoading(false);
       return;
     }
-
+    const fetchShortlistData = async () => {
+      const data = await getRequest(`shortlist/${userId}`);
+      console.log(data)
+    }
+    fetchShortlistData();
     const fetchData = async () => {
       try {
         const [students, users, departments] = await Promise.all([
@@ -108,16 +112,7 @@ export default function AllStudentsPage() {
     applyFilters();
   }, [searchQuery, cgpaFilter, departmentFilter, placedFilter, studentData]);
 
-  const handleDownload = () => {
-    const dataToExport = filteredData.map(({ prn, name, dob, department, gender, email, phone, address, admissionType, passOutYear, cgpa, liveBacklogs, deadBacklogs, yearGap, preference1, preference2, preference3, placed }) => ({
-      prn, name, dob, department, gender, email, phone, address, admissionType, passOutYear, cgpa, liveBacklogs, deadBacklogs, yearGap, preference1, preference2, preference3, placed
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
-    XLSX.writeFile(workbook, 'students.xlsx');
-  };
+  
 
   if (loading) return <Loader />;
   if (error) return <div className="text-center py-20 text-red-500">Error: {error}</div>;
@@ -184,15 +179,7 @@ export default function AllStudentsPage() {
             {viewMode === 'card' ? 'Table View' : 'Card View'}
           </button>
 
-          {(userRole === 'ADMIN' || userRole === 'COORDINATOR') && (
-            <button
-              onClick={handleDownload}
-              className="flex items-center bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-all shadow-md"
-            >
-              <Download className="w-5 h-5 mr-2" />
-              Download
-            </button>
-          )}
+          
         </div>
       </div>
 
