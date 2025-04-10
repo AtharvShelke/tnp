@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
-  const [coordinator, setCoordinator] = useState(null);
+  const [coordinatorData, setCoordinatorData] = useState(null);
   const [department, setDepartment] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -20,29 +20,25 @@ export default function ProfilePage() {
 
     const fetchCoordinatorDetails = async () => {
       try {
-        const data = await getRequest(`coordinator/${userId}`);
-        setCoordinator(data);
+        const response = await getRequest(`coordinator/${userId}`);
+        
+
+        if (response?.data?.coordinator) {
+          setCoordinatorData(response.data.coordinator);
+          setDepartment(response.data.dept);
+        } else {
+          throw new Error('Invalid response structure');
+        }
       } catch (error) {
-        console.error('Failed to fetch coordinator details:', error.message);
+        
         toast.error('Failed to fetch user details');
+      } finally {
+        setLoading(false);
       }
     };
 
-    const fetchDepartmentDetails = async () => {
-      if (!coordinator?.data?.departmentId) return;
-      try {
-        const data = await getRequest(`departments/${coordinator?.data?.departmentId}`);
-        setDepartment(data);
-      } catch (error) {
-        console.error('Failed to fetch department details:', error.message);
-        toast.error('Failed to fetch user details');
-      }
-    };
-
-    Promise.all([fetchCoordinatorDetails(), fetchDepartmentDetails()]).finally(() => {
-      setLoading(false);
-    });
-  }, [userId, coordinator?.data?.departmentId]);
+    fetchCoordinatorDetails();
+  }, [userId]);
 
   if (status === 'authenticated') {
     if (session?.user?.role === 'STUDENT') {
@@ -51,9 +47,7 @@ export default function ProfilePage() {
     }
 
     if (loading) {
-      return (
-        <Loader/>
-      );
+      return <Loader />;
     }
 
     return (
@@ -80,11 +74,11 @@ export default function ProfilePage() {
               <>
                 <p className='py-2 text-gray-700 flex items-center gap-3'>
                   <University className='w-5 text-gray-500' />
-                  {department?.title}
+                  {department}
                 </p>
                 <p className='py-2 text-gray-700 flex items-center gap-3'>
                   <Phone className='w-5 text-gray-500' />
-                  {coordinator?.data?.phone}
+                  {coordinatorData?.phone || 'N/A'}
                 </p>
               </>
             )}

@@ -10,7 +10,7 @@ export default function TextInput({
   type = "text",
   className = "sm:col-span-2",
 }) {
-  const errorMessage = errors?.[name]?.message; // Directly access error message if available
+  const errorMessage = errors?.[name]?.message; 
   
   return (
     <div className={className}>

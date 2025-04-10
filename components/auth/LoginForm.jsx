@@ -5,21 +5,39 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import TextInput from "../FormInput/TextInput";
 import { signIn } from "next-auth/react";
+import Loader from "../Loader";
 
 export default function LoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm();
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      const loginData = await signIn("credentials", { ...data, redirect: false });
+      const loginData = await signIn("credentials", {
+        ...data,
+        redirect: false,
+      });
 
       if (loginData?.error) {
-        console.error("Login error:", loginData.error);
         setLoading(false);
+
+        // Set the error for both fields to show red text under them
+        setError("email", {
+          type: "manual",
+          message: "Invalid email or password",
+        });
+        setError("password", {
+          type: "manual",
+          message: "Invalid email or password",
+        });
         return;
       }
 
@@ -40,16 +58,17 @@ export default function LoginForm() {
         register={register}
         errors={errors}
         type="email"
-        required
+        isRequired={true}
         className="transition-all border-gray-300 focus:ring-2 focus:ring-blue-500"
       />
+
       <TextInput
         label="Password"
         name="password"
         register={register}
         errors={errors}
         type="password"
-        required
+        isRequired={true}
         className="transition-all border-gray-300 focus:ring-2 focus:ring-blue-500"
       />
 
@@ -57,10 +76,12 @@ export default function LoginForm() {
         type="submit"
         disabled={loading}
         className={`w-full px-6 py-3 font-semibold tracking-wide text-white transition rounded-lg bg-blue-600 ${
-          loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-500 hover:scale-105"
+          loading
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-blue-500 hover:scale-105"
         }`}
       >
-        {loading ? "Signing in..." : "Sign In"}
+        {loading ? <Loader /> : "Sign In"}
       </button>
     </form>
   );

@@ -4,7 +4,6 @@ import {
   CopyCheck,
   FileChartColumn,
   FileCheck2,
-  GraduationCap,
   Landmark,
   LayoutDashboard,
   LayoutList,
@@ -17,6 +16,7 @@ import {
   BookPlus,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
@@ -99,7 +99,7 @@ export default function Sidebar() {
 
         <nav className="flex gap-1 flex-col">
           {links.map((link, i) => (
-            <a
+            <Link
               key={i}
               href={link.href}
               className={`flex items-center px-3 py-[0.75rem] rounded-xl transition-all duration-300 text-gray-300 hover:bg-gray-800 hover:text-white ${
@@ -108,7 +108,7 @@ export default function Sidebar() {
             >
               {link.icon}
               <span className="ml-4 font-medium">{link.name}</span>
-            </a>
+            </Link>
           ))}
         </nav>
       </aside>
