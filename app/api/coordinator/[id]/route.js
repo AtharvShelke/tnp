@@ -18,14 +18,24 @@ export async function GET(req) {
     });
 
     if (coordinator) {
-      return NextResponse.json({ isCoordinator: true, data: coordinator });
+      const department = await db.department.findUnique({
+        where:{
+          id:coordinator.departmentId
+        }
+      })
+      const data = {
+        
+        coordinator,
+        dept: department.title
+      }
+      return NextResponse.json({ isCoordinator: true, data:data });
     } else {
       const user = await db.user.findUnique({
         where: { id: id },
       });
-
+     
       if (user) {
-        return NextResponse.json({ isCoordinator: false, data: user });
+        return NextResponse.json({ isCoordinator: false, data:user });
       } else {
         return NextResponse.json({ message: "User not found" }, { status: 404 });
       }
