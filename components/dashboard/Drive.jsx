@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-
+import Link from "next/link";
 export default function Drive({ id, title, img, date, last_date }) {
     const eventDate = new Date(date);
     const lastEventDate = new Date(last_date);
@@ -40,12 +40,12 @@ export default function Drive({ id, title, img, date, last_date }) {
                     {eventStatus}
                 </div>
 
-                <a 
+                <Link
                     href={`/drives/${id}`} 
                     className="mt-4 flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all focus:ring-4 focus:ring-blue-300 focus:outline-none"
                 >
                     Read More <ArrowRight className="h-4 w-4" />
-                </a>
+                </Link>
             </div>
         </div>
     );
