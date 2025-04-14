@@ -16,12 +16,10 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!userId) return;
-
-    const fetchCoordinatorDetails = async () => {
+    if (userId && session?.user?.role === "COORDINATOR") {
+      const fetchCoordinatorDetails = async () => {
       try {
         const response = await getRequest(`coordinator/${userId}`);
-        
 
         if (response?.data?.coordinator) {
           setCoordinatorData(response.data.coordinator);
@@ -30,7 +28,7 @@ export default function ProfilePage() {
           throw new Error('Invalid response structure');
         }
       } catch (error) {
-        
+
         toast.error('Failed to fetch user details');
       } finally {
         setLoading(false);
@@ -38,6 +36,11 @@ export default function ProfilePage() {
     };
 
     fetchCoordinatorDetails();
+    }
+    setLoading(false)
+    return;
+
+    
   }, [userId]);
 
   if (status === 'authenticated') {
