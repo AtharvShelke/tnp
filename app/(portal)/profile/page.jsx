@@ -16,7 +16,7 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!userId) return;
+    if (userId && session?.user?.role === "COORDINATOR") {
 
     const fetchCoordinatorDetails = async () => {
       try {
@@ -38,6 +38,9 @@ export default function ProfilePage() {
     };
 
     fetchCoordinatorDetails();
+  }
+  setLoading(false);
+  return;
   }, [userId]);
 
   if (status === 'authenticated') {
