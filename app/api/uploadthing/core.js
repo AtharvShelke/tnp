@@ -9,7 +9,7 @@ export const ourFileRouter = {
   imageUploader: f({
     image: { maxFileSize: "1MB", maxFileCount: 1 },
   }).onUploadComplete(async ({ metadata, file }) => {
-    console.log("Image file URL:", file.url);
+    console.log("Image file URL:", file.ufsurl);
     return { uploadedBy: metadata?.userId };
   }),
 
@@ -17,7 +17,7 @@ export const ourFileRouter = {
   pdfUploader: f({
     pdf: { maxFileSize: "10MB", maxFileCount: 1 },
   }).onUploadComplete(async ({ metadata, file }) => {
-    console.log("PDF file URL:", file.url);
+    console.log("PDF file URL:", file.ufsurl);
     return { uploadedBy: metadata?.userId };
   }),
 };
