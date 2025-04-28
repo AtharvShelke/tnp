@@ -26,3 +26,44 @@ export const GET = async (req) => {
     }
     return NextResponse.json({ id })
 }
+
+// PUT method to update an existing department
+export const PUT = async (req) => {
+    const id = extractDepartmentId(req.nextUrl.pathname);
+    if (!id) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+  
+    try {
+      const data = await req.json();
+      // Update the department with the new data (e.g., title)
+      const updatedDepartment = await db.department.update({
+        where: { id },
+        data, // Expecting the updated fields from the client (for example, { title: "New Title" })
+      });
+      return NextResponse.json(updatedDepartment);
+    } catch (error) {
+      console.error("Error updating department:", error);
+      return NextResponse.json(
+        { error: error.message || "An error occurred while updating the department" },
+        { status: 500 }
+      );
+    }
+  };
+
+  // DELETE method to remove a department
+export const DELETE = async (req) => {
+    const id = extractDepartmentId(req.nextUrl.pathname);
+    if (!id) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+  
+    try {
+      const deletedDepartment = await db.department.delete({
+        where: { id },
+      });
+      return NextResponse.json(deletedDepartment);
+    } catch (error) {
+      console.error("Error deleting department:", error);
+      return NextResponse.json(
+        { error: error.message || "An error occurred while deleting the department" },
+        { status: 500 }
+      );
+    }
+  };
