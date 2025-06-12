@@ -20,11 +20,11 @@ export default function AllStudentsPage() {
   const [viewMode, setViewMode] = useState('card'); // Default to Card View
   const [placedFilter, setPlacedFilter] = useState(''); // New filter for placed students
   const { data: session } = useSession();
-  const userId = session?.user?.id;
+  const currentUserId = session?.user?.id;
   const userRole = session?.user?.role; // Fetch user role
 
   useEffect(() => {
-    if (!userId) {
+    if (!currentUserId) {
       setLoading(false);
       return;
     }
@@ -74,7 +74,7 @@ export default function AllStudentsPage() {
     };
 
     fetchData();
-  }, [userId]);
+  }, [currentUserId]);
 
   // Function to handle filtering
   const applyFilters = () => {

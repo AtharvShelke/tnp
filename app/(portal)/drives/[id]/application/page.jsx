@@ -5,18 +5,22 @@ import { useEffect, useState } from "react";
 import DataTable from '@/components/dashboard/StudentTable';
 import ApplicationTable from "@/components/dashboard/ApplicationTable";
 import ApplicantTable from "@/components/dashboard/ApplicantTable";
-import { getRequest } from "@/lib/apiRequest";
+import { getRequest, putRequest, deleteRequest } from "@/lib/apiRequest";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 export default function DriveApplication() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   useEffect(() => {
     const fetchDriveApplicants = async () => {
       try {
         const result = await getRequest(`drives/${id}/application`);
+        console.log("Drive application Result: ", result)
         setData(result);
       } catch (err) {
         setError(err.message);
@@ -28,48 +32,61 @@ export default function DriveApplication() {
     fetchDriveApplicants();
   }, [id]);
 
-  const columnNames = [
-    "PRN", "Name", "Email", "Phone", "Address", "DOB", "Gender",
-    "Department", "CGPA", "Admission Type", "Expected Grad", 
-    "Live Backlogs", "Dead Backlogs", "Year Gap",
-    "Preference 1", "Preference 2", "Preference 3", "Placed"
-  ];
+  const handleStatusUpdate = async (userId, newStatus) => {
+    try {
+      await putRequest(`/application/${userId}`, { status: newStatus });
+      setData(data.map(item => 
+        item.userId === userId ? { ...item, status: newStatus } : item
+      ));
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="flex items-center gap-2 text-gray-700">
-          <span className="animate-spin h-5 w-5 border-t-2 border-gray-600 rounded-full"></span>
-          <span>Loading applicants...</span>
-        </div>
-      </div>
-    );
-  }
+  const handleDeleteClick = (userId) => {
+    setItemToDelete(userId);
+    setShowDeleteModal(true);
+  };
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="text-red-600 font-medium bg-red-100 px-4 py-2 rounded-md">
-          Error: {error}
-        </span>
-      </div>
-    );
-  }
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteRequest(`/application/${itemToDelete}`);
+      setData(data.filter(item => item.userId !== itemToDelete));
+      setShowDeleteModal(false);
+    } catch (err) {
+      console.error("Failed to delete application:", err);
+      setShowDeleteModal(false);
+    }
+  };
 
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="text-gray-500 text-lg">No applicants found.</span>
-      </div>
-    );
-  }
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  };
+
+  const columnNames = [ "PRN", "Name", "Email", "Phone","Department", "CGPA", "Expected Grad", "Status"];
+
+  // ... rest of your loading/error/empty states remain the same ...
 
   return (
     <div className="max-w-6xl mt-10 mx-auto py-10 px-6 bg-white rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">All Applicants</h1>
       </div>
-      <ApplicantTable columns={columnNames} data={data} />
+      <ApplicantTable 
+        columns={columnNames} 
+        data={data} 
+        onStatusUpdate={handleStatusUpdate}
+        onDeleteClick={handleDeleteClick}
+      />
+      
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Application"
+        message="Are you sure you want to delete this application? This action cannot be undone."
+      />
     </div>
   );
 }

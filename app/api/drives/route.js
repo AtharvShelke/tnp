@@ -7,12 +7,12 @@ const prisma = new PrismaClient();
 export async function POST(req) {
     try {
         const data = await req.json();
-        console.log(data)
+        
         const {
             referenceNumber,
             title,
             driveDepartments,
-            status,
+            
             industryType,
             ctc,
             about,
@@ -27,7 +27,9 @@ export async function POST(req) {
             lastDriveDate,
             imageUrl,
             rounds,
-            creatorId
+            creatorId,
+            minCGPA,
+            maxBacklogs
         } = data;
 
         const drive = await prisma.drive.create({
@@ -35,11 +37,11 @@ export async function POST(req) {
                 referenceNumber,
                 title,
                 driveDepartments: {
-                    create: driveDepartments.map((round) => ({
-                        title: round.title,
+                    create: driveDepartments.map((dept) => ({
+                        title: dept.title,
                     })),
                 },
-                status,
+                
                 industryType,
                 ctc,
                 about,
@@ -54,12 +56,13 @@ export async function POST(req) {
                 lastDriveDate: new Date(lastDriveDate), 
                 imageUrl,
                 creatorId,
+                minCGPA,
+                maxBacklogs,
                 rounds: {
                     create: rounds.map((round) => ({
                         title: round.title,
                     })),
                 },
-                
             },
         });
 

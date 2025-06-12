@@ -1,47 +1,63 @@
 'use client';
 
-import NewStudent from '@/components/Forms/NewStudent';
+import UpdateStudent from '@/components/Forms/UpdateStudent';
 import { getRequest } from '@/lib/apiRequest';
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-export default function UpdateStudent({ params }) {
+export default function UpdateStudentPage({ params }) {
+  // Unwrap the params promise
+  const { id } = use(params);
   const [departments, setDepartments] = useState(null);
   const [error, setError] = useState(null);
-  const [studentId, setStudentId] = useState(null);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false)
+  const [studentData, setStudentData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchParamsAndData = async () => {
+    const fetchStudentData = async (id) => {
       try {
+        setLoading(true);
+        
+        // Fetch data in parallel
+        const [departmentData, studentResponse] = await Promise.all([
+          getRequest('departments'),
+          getRequest(`student/${id}`)
+        ]);
 
-        const { id } = await params;
-        setStudentId(id)
-        const departmentData = await getRequest(`departments`);
-        const studentData = await getRequest(`student/${id}`);
-        const dateOnly = new Date("2004-01-25T00:00:00.000Z").toISOString().split("T")[0];
-        studentData.dob=dateOnly
-        setData(studentData)
+        // Format date if it exists
+        if (studentResponse?.dob) {
+          studentResponse.dob = new Date(studentResponse.dob).toISOString().split('T')[0];
+        }
+
         setDepartments(departmentData);
-
-
+        setStudentData(studentResponse);
       } catch (error) {
-        toast.error('failed to fetch department')
-        console.error(error);
+        console.error('Failed to fetch student data:', error);
+        setError('Failed to load student data');
+        toast.error('Failed to fetch student information');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchParamsAndData();
-  }, [params]);
-  
+    fetchStudentData(id);
+  }, [id]);
+
+  if (loading) return <div className="text-center py-8">Loading student data...</div>;
+  if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
 
   return (
-    <>
-      {error && <p className="text-red-500">{error}</p>}
-      {departments && (
-        <NewStudent departments={departments} isUpdate={true} initialData={data} studentId={studentId} />
+    <div className="container mx-auto px-4 py-8">
+      {departments && studentData ? (
+        <UpdateStudent
+          departments={departments} 
+          isUpdate={true} 
+          initialData={studentData} 
+          studentId={id}  // Use the unwrapped id here
+        />
+      ) : (
+        <div className="text-center py-8">No student data found</div>
       )}
-    </>
+    </div>
   );
 }

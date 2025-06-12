@@ -3,13 +3,16 @@ import React, { useState } from "react";
 import FormHeader from "@/components/dashboard/FormHeader";
 
 
-import TextInput from "@/components/FormInput/TextInput";
+import { Input } from "@/components/ui/input"
+
 import { useForm } from "react-hook-form";
 
 import SubmitButton from "@/components/FormInput/SubmitButton";
 
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { postRequest } from "@/lib/functions";
+import TextInput from "@/components/FormInput/TextInput";
 
 export default function NewDepartment({ initialData = {}, isUpdate = false }) {
   const {
@@ -21,42 +24,22 @@ export default function NewDepartment({ initialData = {}, isUpdate = false }) {
   } = useForm({
     defaultValues: initialData,
   });
-  const router = useRouter();
 
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  
   const onSubmit = async (data) => {
-
     setLoading(true);
-
     try {
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/departments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": 'application/json'
-        },
-        body: JSON.stringify(data)
-
-      });
-      setLoading(false)
-      if (response.ok) {
-        toast.success('Successfully added the department')
-        reset();
-      } else {
-        const errorText = await response.text(); // Get the response text in case it's not JSON
-        console.log(errorText);
-        toast.error(`Error: ${errorText || 'An error occurred'}`);
-      }
-      router.push('/departments')
+      await postRequest('departments', data, 'Successfully Created department');
+      reset();
+      router.push('/departments');
     } catch (error) {
+      toast.error(`Error: ${error.message}`);
+    } finally {
       setLoading(false);
-        
-        toast.error(`Error: ${error.message}`);
     }
-
-  }
+  };
   return (
     <div>
       <FormHeader title="Department" href="/dashboard" />
@@ -73,6 +56,7 @@ export default function NewDepartment({ initialData = {}, isUpdate = false }) {
             errors={errors}
             type="text"
           />
+
 
 
 

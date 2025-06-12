@@ -1,255 +1,286 @@
-// app/api/drives/application/route.js - Update this file to handle DELETE requests
-
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const applicationSchema = z.object({
+  userId: z.string().min(1, "User ID is required"),
+  driveId: z.string().min(1, "Drive ID is required"),
+  status: z.enum(['pending', 'approved', 'rejected']).default('pending'),
+});
+
+const updateSchema = z.object({
+  id: z.string().min(1, "Application ID is required"),
+  status: z.enum(['pending', 'approved', 'rejected']).optional(),
+  isplaced: z.boolean().optional(),
+  name: z.string().min(1, "Name cannot be empty").optional(),
+  prn: z.string().min(1, "PRN cannot be empty").optional(),
+  department: z.string().min(1, "Department cannot be empty").optional(),
+  driveId: z.string().min(1, "Drive ID cannot be empty").optional(),
+});
 
 export const POST = async (req) => {
+  try {
     const data = await req.json();
-    console.log(data)
+    
+    const validation = applicationSchema.safeParse(data);
+    if (!validation.success) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed",
+          details: validation.error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      );
+    }
 
-    const driveApplication = await db.driveApplication.create({ data })
-    return NextResponse.json(driveApplication)
+    const existingApp = await db.driveApplication.findFirst({
+      where: {
+        userId: validation.data.userId,
+        driveId: validation.data.driveId
+      }
+    });
+
+    if (existingApp) {
+      return NextResponse.json(
+        { error: "Application already exists for this user and drive" },
+        { status: 409 }
+      );
+    }
+
+    const driveApplication = await db.driveApplication.create({ 
+      data: validation.data 
+    });
+    
+    return NextResponse.json(driveApplication, { status: 201 });
+  } catch (error) {
+    console.error('Error creating application:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to create application' },
+      { status: 500 }
+    );
+  }
 }
 
 export const GET = async (req) => {
-    try {
-        const applications = await db.driveApplication.findMany();
+  try {
+    // const url = new URL(req.url);
+    // const page = parseInt(url.searchParams.get('page') || '1');
+    // const limit = parseInt(url.searchParams.get('limit') || '10');
+    // const search = url.searchParams.get('search') || '';
+    // const status = url.searchParams.get('status') || '';
+    
+    // const skip = (page - 1) * limit;
 
-        if (!applications || applications.length === 0) {
-            return NextResponse.json({ message: 'No applications found' }, { status: 404 });
-        }
+    // const whereClause = {
+    //   ...(search && {
+    //     OR: [
+    //       { user: { name: { contains: search, mode: 'insensitive' } } },
+    //       { user: { Student: { some: { PRN: { contains: search, mode: 'insensitive' } } } } },
+    //       { drive: { 
+    //         OR: [
+    //           { title: { contains: search, mode: 'insensitive' } },
+    //           { referenceNumber: { contains: search, mode: 'insensitive' } }
+    //         ]
+    //       } }
+    //     ]
+    //   }),
+    //   ...(status && { status })
+    // };
 
-        const enrichedApplications = await Promise.all(
-            applications.map(async (app) => {
-                try {
-                    const user = await db.user.findUnique({
-                        where: {
-                            id: app.userId,
-                        },
-                    });
+    // const [applications, total] = await Promise.all([
+    //   db.driveApplication.findMany({
+    //     where: whereClause,
+    //     skip,
+    //     take: limit,
+    //     orderBy: { createdAt: 'desc' },
+    //     include: {
+    //       user: {
+    //         include: {
+    //           Student: {
+    //             include: {
+    //               department: true
+    //             }
+    //           }
+    //         }
+    //       },
+    //       drive: {
+    //         select: {
+    //           title: true,
+    //           referenceNumber: true
+    //         }
+    //       }
+    //     }
+    //   }),
+    //   db.driveApplication.count({ where: whereClause })
+    // ]);
 
-                    const student = await db.student.findUnique({
-                        where: {
-                            userId: app.userId,
-                        },
-                    });
+    // const enrichedApplications = applications.map(app => ({
+    //   id: app.id,
+    //   isplaced: app.user?.Student?.[0]?.placed || false,
+    //   prn: app.user?.Student?.[0]?.PRN || '',
+    //   userId: app.userId,
+    //   driveId: app.driveId,
+    //   status: app.status,
+    //   name: app.user?.name || 'Unknown User',
+    //   department: app.user?.Student?.[0]?.department?.title || 'Unknown Department',
+    //   referenceNumber: app.drive?.referenceNumber || 'No Reference',
+    //   title: app.drive?.title || 'No Title',
+    // }));
 
-                    const department = student ? await db.department.findUnique({
-                        where: {
-                            id: student.departmentId,
-                        },
-                    }) : null;
-
-                    const drive = await db.drive.findUnique({
-                        where: {
-                            id: app.driveId,
-                        },
-                    });
-
-                    return {
-                        id: app.id,
-                        isplaced: student.placed,
-                        prn: student.PRN,
-                        userId: app.userId,
-                        driveId: app.driveId,
-                        status: app.status,
-                        name: user ? user.name : 'Unknown User',
-                        department: department ? department.title : 'Unknown Department',
-                        referenceNumber: drive ? drive.referenceNumber : 'No Reference',
-                        title: drive ? drive.title : 'No Title',
-                    };
-                } catch (error) {
-                    console.error('Error fetching related data for application:', error);
-                    return null; 
+    // return NextResponse.json({
+    //   data: enrichedApplications,
+    //   pagination: {
+    //     page,
+    //     limit,
+    //     total,
+    //     totalPages: Math.ceil(total / limit),
+    //   }
+    // });
+    const data = await db.driveApplication.findMany({
+      orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            include: {
+              Student: {
+                include: {
+                  department: true
                 }
-            })
-        );
-        
-        const filteredApplications = enrichedApplications.filter(app => app !== null);
-
-        return NextResponse.json(filteredApplications);
-    } catch (error) {
-        return NextResponse.json(
-            { error: 'An error occurred while fetching applications' },
-            { status: 500 }
-        );
-    }
+              }
+            }
+          },
+          drive: {
+            select: {
+              title: true,
+              referenceNumber: true
+            }
+          }
+        }
+    })
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch applications' },
+      { status: 500 }
+    );
+  }
 };
 
-// Updated PUT method for updating application
 export const PUT = async (req) => {
-    try {
-        const { 
-            id, 
-            status, 
-            isplaced, 
-            name,
-            prn,
-            department,
-            driveId
-        } = await req.json();
-        
-        if (!id) {
-            return NextResponse.json(
-                { error: 'Application ID is required' },
-                { status: 400 }
-            );
+  try {
+    const rawData = await req.json();
+    
+    const validation = updateSchema.safeParse(rawData);
+    if (!validation.success) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed",
+          details: validation.error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message
+          }))
+        },
+        { status: 400 }
+      );
+    }
+    
+    const { id, ...data } = validation.data;
+
+    const result = await db.$transaction(async (tx) => {
+      const currentApp = await tx.driveApplication.findUnique({ where: { id } });
+      if (!currentApp) throw new Error('Application not found');
+
+      const updatedApplication = await tx.driveApplication.update({
+        where: { id },
+        data: { 
+          status: data.status,
+          driveId: data.driveId || currentApp.driveId
         }
+      });
 
-        // Get the current application to find associated records
-        const currentApp = await db.driveApplication.findUnique({
-            where: { id }
-        });
-
-        if (!currentApp) {
-            return NextResponse.json(
-                { error: 'Application not found' },
-                { status: 404 }
-            );
-        }
-
-        // Update application status and driveId
-        const updatedApplication = await db.driveApplication.update({
-            where: { id },
-            data: { 
-                status,
-                driveId: driveId || currentApp.driveId
-            }
-        });
-
-        // Find the student record
-        const student = await db.student.findUnique({
-            where: { userId: currentApp.userId }
+      if (data.isplaced !== undefined || data.prn || data.department) {
+        const student = await tx.student.findFirst({
+          where: { userId: currentApp.userId }
         });
 
         if (student) {
-            // Update student information
-            await db.student.update({
-                where: { id: student.id },
-                data: { 
-                    placed: isplaced,
-                    PRN: prn || student.PRN 
-                }
+          let updateData = {};
+          if (data.isplaced !== undefined) updateData.placed = data.isplaced;
+          if (data.prn) updateData.PRN = data.prn;
+
+          if (data.department) {
+            const deptRecord = await tx.department.findFirst({
+              where: { title: data.department }
             });
+            if (!deptRecord) throw new Error('Department not found');
+            updateData.departmentId = deptRecord.id;
+          }
 
-            // Find department ID by title if department is provided
-            if (department) {
-                const deptRecord = await db.department.findFirst({
-                    where: { title: department }
-                });
-                
-                if (deptRecord) {
-                    await db.student.update({
-                        where: { id: student.id },
-                        data: { departmentId: deptRecord.id }
-                    });
-                }
-            }
+          await tx.student.update({
+            where: { id: student.id },
+            data: updateData
+          });
         }
+      }
 
-        // Update user name if provided
-        if (name) {
-            await db.user.update({
-                where: { id: currentApp.userId },
-                data: { name }
-            });
-        }
-
-        return NextResponse.json({
-            message: 'Application updated successfully',
-            application: updatedApplication
+      if (data.name) {
+        await tx.user.update({
+          where: { id: currentApp.userId },
+          data: { name: data.name }
         });
-    } catch (error) {
-        console.error('Error updating application:', error);
-        return NextResponse.json(
-            { error: 'An error occurred while updating the application' },
-            { status: 500 }
-        );
-    }
+      }
+
+      return updatedApplication;
+    });
+
+    return NextResponse.json({
+      message: 'Application updated successfully',
+      data: result
+    });
+  } catch (error) {
+    console.error('Error updating application:', error);
+    const status = error.message === 'Application not found' ? 404 : 500;
+    return NextResponse.json(
+      { error: error.message || 'Failed to update application' },
+      { status }
+    );
+  }
 };
 
-// // Fixed DELETE method that's compatible with your deleteRequest function
-// export const DELETE = async (req) => {
-//     try {
-//         const url = new URL(req.url);
-//         const id = url.searchParams.get('id');
-        
-//         if (!id) {
-//             return NextResponse.json(
-//                 { error: 'Application ID is required' },
-//                 { status: 400 }
-//             );
-//         }
-
-//         // Find application by ID
-//         const application = await db.driveApplication.findUnique({
-//             where: { id }
-//         });
-
-//         if (!application) {
-//             return NextResponse.json(
-//                 { error: 'Application not found' },
-//                 { status: 404 }
-//             );
-//         }
-
-//         // Delete the application
-//         await db.driveApplication.delete({
-//             where: { id }
-//         });
-
-//         return NextResponse.json({
-//             message: 'Application deleted successfully'
-//         });
-//     } catch (error) {
-//         console.error('Error deleting application:', error);
-//         return NextResponse.json(
-//             { error: 'An error occurred while deleting the application' },
-//             { status: 500 }
-//         );
-//     }
-// };
-
 export const DELETE = async (req) => {
-    try {
-      const url = new URL(req.url);
-      let id = url.searchParams.get('id');
-      
-      // Clean the ID by removing anything after "?" if present
-      if (id && id.includes('?')) {
-        id = id.split('?')[0];
-      }
-      
-      if (!id) {
-        return NextResponse.json(
-          { error: 'Application ID is required' },
-          { status: 400 }
-        );
-      }
-      
-      // Find application by ID
-      const application = await db.driveApplication.findUnique({
-        where: { id }
-      });
-      
-      if (!application) {
-        return NextResponse.json(
-          { error: 'Application not found' },
-          { status: 404 }
-        );
-      }
-      
-      // Delete the application
-      await db.driveApplication.delete({
-        where: { id }
-      });
-      
-      return NextResponse.json({ message: 'Application deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting application:', error);
+  try {
+    const url = new URL(req.url);
+    const id = url.searchParams.get('id');
+    
+    if (!id) {
       return NextResponse.json(
-        { error: 'An error occurred while deleting the application' },
-        { status: 500 }
+        { error: 'Application ID is required' },
+        { status: 400 }
       );
     }
-  };
+    
+    const application = await db.driveApplication.findUnique({ where: { id } });
+    if (!application) {
+      return NextResponse.json(
+        { error: 'Application not found' },
+        { status: 404 }
+      );
+    }
+    
+    await db.driveApplication.delete({ where: { id } });
+    
+    return NextResponse.json({ 
+      message: 'Application deleted successfully',
+      data: { id }
+    });
+  } catch (error) {
+    console.error('Error deleting application:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to delete application' },
+      { status: 500 }
+    );
+  }
+};

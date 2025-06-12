@@ -38,10 +38,10 @@ export default function StudentTable(props) {
                 <td className="px-2 sm:px-6 sm:py-4 text-center">{item.preference3}</td>
                 <td className="px-2 sm:px-6 sm:py-4 text-center">{item.placed ? 'Yes' : 'No'}</td>
                 <td className="px-2 sm:px-6 sm:py-4">
-                  <a href={`/students/profile/${item.user}`} className="font-medium text-blue-600 hover:underline">
+                  <a href={`/students/profile/${item.userId}`} className="font-medium text-blue-600 hover:underline">
                     View
                   </a>
-                  <a href={`student/profile/edit/${item.user}`} className="ml-5 font-medium text-blue-600 hover:underline">
+                  <a href={`student/profile/edit/${item.userId}`} className="ml-5 font-medium text-blue-600 hover:underline">
                     Edit
                   </a>
                   <a href="#" className="ml-5 font-medium text-red-600 hover:underline">

@@ -98,7 +98,7 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
   };
 
   return (
-    <div>
+    <div className="p-5 md:p-0">
       <FormHeader title="Drive" href="/dashboard" />
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -207,6 +207,25 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
             errors={errors}
           />
           <TextInput
+            label="Minimum CGPA"
+            name="minCGPA"
+            register={register}
+            errors={errors}
+            type="number"
+            step="0.1"
+            min="0"
+            max="10"
+          />
+
+          <TextInput
+            label="Maximum Backlogs Allowed"
+            name="maxBacklogs"
+            register={register}
+            errors={errors}
+            type="number"
+            min="0"
+          />
+          <TextInput
             label="Application Link"
             name="link"
             register={register}
@@ -220,6 +239,7 @@ export default function NewDrive({ initialData = {}, isUpdate = false }) {
             errors={errors}
             type="text"
           />
+
           <div className="">
             <h3 className="text-lg font-semibold text-gray-700">Rounds</h3>
             {fields.map((field, index) => (

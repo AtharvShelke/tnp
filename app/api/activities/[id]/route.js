@@ -1,98 +1,121 @@
 import db from "@/lib/db";
-import {ObjectId} from 'mongodb';
 import { NextResponse } from "next/server";
 
-const extractActivityId = (pathname) => {
-    const match = pathname.match(/\/api\/activities\/([^/]+)/);
-    return match ? match[1] : null;
-};
-export const GET = async (req) => {
-    const id = extractActivityId(req.nextUrl.pathname);
-    if (!id) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+export const GET = async (request, { params }) => {
+    const { id } = await params;
 
     try {
         const activity = await db.activity.findUnique({
             where: { id },
-            include:{
-                
-                activityDepartments:true
+            include: {
+                activityDepartments: true
             }
-        })
-       
-        return NextResponse.json(activity)
+        });
+
+        if (!activity) {
+            return NextResponse.json(
+                { message: "Activity not found" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json(activity);
     } catch (error) {
-        console.error("Error posting data:", error);
+        console.error("Error fetching activity:", error);
         return NextResponse.json(
-            { error: error.message || "An error occurred while posting data" },
+            {
+                message: "Failed to fetch activity",
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            },
             { status: 500 }
         );
     }
-    return NextResponse.json({ id })
-}
+};
 
-// PUT: Update an existing activity.
-// The client should send a JSON body with the updated fields.
-export const PUT = async (req) => {
-    const id = extractActivityId(req.nextUrl.pathname);
-    if (!id) {
-      return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
-    }
-  
+export const PUT = async (request, { params }) => {
+    const { id } = await params;
+
     try {
-      const body = await req.json();
-      const objectId = new ObjectId(id);
-      // Format the date as "2024-12-11T00:00:00.000+00:00"
-      const formattedDate = new Date(body.date)
-        .toISOString()
-        .replace("Z", "+00:00");
-  
-      console.log("Date ", formattedDate);
-      console.log("ID ", objectId);
-      console.log("Title ", body.title);
-      console.log("refno ", body.referenceNumber);
-      console.log("desc ", body.description);
-      console.log("link  ", body.link);
-      console.log("img  ", body.imageUrl);
-  
-      const updatedActivity = await db.activity.update({
-        where: { id: objectId  },
-        data: {
-          title: body.title,
-          referenceNumber: body.referenceNumber,
-          description: body.description,
-          date: formattedDate,
-          link: body.link,
-          imageUrl: body.imageUrl,
-        },
-      });
-      return NextResponse.json(updatedActivity);
+        const body = await request.json();
+
+        // First, update the activity
+        const updatedActivity = await db.activity.update({
+            where: { id },
+            data: {
+                title: body.title,
+                referenceNumber: body.referenceNumber,
+                description: body.description,
+                link: body.link,
+                date: body.date ? new Date(body.date) : undefined,
+                imageUrl: body.imageUrl,
+            },
+        });
+
+        // Then update departments if provided
+        if (body.activityDepartments) {
+            // First delete existing departments
+            await db.activityDepartment.deleteMany({
+                where: { activityId: id }
+            });
+
+            // Then create new ones
+            await db.activityDepartment.createMany({
+                data: body.activityDepartments.map(dept => ({
+                    activityId: id,
+                    departmentId: dept.departmentId,
+                    // Other department fields if needed
+                }))
+            });
+        }
+
+        // Return the full activity with departments
+        const fullActivity = await db.activity.findUnique({
+            where: { id },
+            include: {
+                activityDepartments: true
+            }
+        });
+
+        return NextResponse.json(fullActivity);
+
     } catch (error) {
-      console.error('Error updating activity:', error);
-      return NextResponse.json(
-        { error: error.message || 'An error occurred while updating the activity' },
-        { status: 500 }
-      );
+        console.error('Error updating activity:', error);
+        return NextResponse.json(
+            {
+                message: "Failed to update activity",
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            },
+            { status: 500 }
+        );
     }
-  };
-  
-  
-  // DELETE: Remove an activity.
-  export const DELETE = async (req) => {
-    const id = extractActivityId(req.nextUrl.pathname);
-    if (!id) {
-      return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
-    }
-  
+};
+
+export const DELETE = async (request, { params }) => {
+    const { id } = await params;
+
     try {
-      const deletedActivity = await db.activity.delete({
-        where: { id },
-      });
-      return NextResponse.json(deletedActivity);
+        // Use the correct model name (ActivityDepartments instead of activityDepartment)
+        await db.$transaction([
+            db.activityDepartments.deleteMany({
+                where: { activityId: id }
+            }),
+            db.activity.delete({
+                where: { id }
+            })
+        ]);
+
+        return NextResponse.json(
+            { message: "Activity deleted successfully" },
+            { status: 200 }
+        );
     } catch (error) {
-      console.error('Error deleting activity:', error);
-      return NextResponse.json(
-        { error: error.message || 'An error occurred while deleting the activity' },
-        { status: 500 }
-      );
+        console.error('Error deleting activity:', error);
+        return NextResponse.json(
+            { 
+                message: "Failed to delete activity",
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            },
+            { status: 500 }
+        );
     }
-  };
+};

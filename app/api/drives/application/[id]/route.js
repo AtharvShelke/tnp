@@ -30,10 +30,16 @@ export const POST = async (req) => {
       );
     }
 
-    return NextResponse.json(
-      { message: "Application not found", applied: false },
-      { status: 200 }
-    );
+    const application = await db.driveApplication.create({
+      data:{
+
+        userId:userId,
+        driveId:driveId
+      }
+    })
+    return (
+      NextResponse.json({message:"Applied successfully", applied:true}, {status:200})
+    )
   } catch (error) {
     console.error("Error fetching applications:", error.message, error.stack);
     return NextResponse.json(
@@ -49,74 +55,75 @@ const extractUserId = (pathname) => {
 };
 
 export const GET = async (req) => {
-   const userId = extractUserId(req.nextUrl.pathname);
-   if (!userId) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
-   try {
+  try {
+    const url = new URL(req.url);
+    const userId = url.searchParams.get('userId');
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Missing userId query parameter" },
+        { status: 400 }
+      );
+    }
+
     const applications = await db.driveApplication.findMany({
-      where:{
-        userId:userId
-      }
+      where: { userId }
     });
 
-    
     const enrichedApplications = await Promise.all(
-        applications.map(async (app) => {
-            
-            
-          
-
-            
-            
-            const drive = await db.drive.findUnique({
-                where: {
-                    id: app.driveId,
-                },
-               
-            });
-           
-            return {
-              createdAt:app.createdAt,
-                status:app.status,
-                referenceNumber:drive.referenceNumber,
-                title:drive.title
-            };
-        })
-    );
+      applications.map(async (app) => {
+        const drive = await db.drive.findUnique({
+          where: { id: app.driveId },
+        });
+        
+        return drive ? {
+          createdAt: app.createdAt,
+          status: app.status,
+          referenceNumber: drive.referenceNumber,
+          title: drive.title
+        } : null;
+      })
+    ).then(results => results.filter(Boolean));
 
     return NextResponse.json(enrichedApplications);
-   } catch (error) {
-    console.error("Error fetching data:", error);
-        return NextResponse.json(
-            { error: error.message || "An error occurred while fetching data" },
-            { status: 500 }
-        );
-   }
-}
-
-export const PUT = async (req) => {
-  const data = await req.json();
-  const { id, ...updatedData } = data; // Extract id and keep the rest as updatedData
-  console.log(data);
-  console.log("ID IS : ", id);
-
-  if (!id || !updatedData) {
+  } catch (error) {
+    console.error("Error in GET handler:", error);
     return NextResponse.json(
-      { error: "Missing driveId or updatedData" },
-      { status: 400 }
+      { error: "Internal server error" },
+      { status: 500 }
     );
   }
+};
 
+export const PUT = async (req) => {
   try {
+    const data = await req.json();
+    const { id, ...updatedData } = data;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Missing drive ID" },
+        { status: 400 }
+      );
+    }
+
+    if (Object.keys(updatedData).length === 0) {
+      return NextResponse.json(
+        { error: "No data provided for update" },
+        { status: 400 }
+      );
+    }
+
     const updatedDrive = await db.drive.update({
       where: { id },
-      data: updatedData, // Only update the other fields
+      data: updatedData,
     });
 
-    return NextResponse.json(updatedDrive, { status: 200 });
+    return NextResponse.json(updatedDrive);
   } catch (error) {
-    console.error("Error updating drive:", error.message, error.stack);
+    console.error("Error in PUT handler:", error);
     return NextResponse.json(
-      { error: "An internal server error occurred" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -125,38 +132,46 @@ export const PUT = async (req) => {
 
 
 export const DELETE = async (req) => {
-  const { driveId } = await req.json();
-
-  if (!driveId) {
-    return NextResponse.json(
-      { error: "Missing driveId" },
-      { status: 400 }
-    );
-  }
-
   try {
-    // First, delete all related applications for the drive
-    await db.driveApplication.deleteMany({
-      where: {
-        driveId: driveId,
-      },
+    const data = await req.json();
+    const { driveId } = data;
+
+    if (!driveId) {
+      return NextResponse.json(
+        { error: "Missing driveId" },
+        { status: 400 }
+      );
+    }
+
+    // Verify drive exists first
+    const driveExists = await db.drive.findUnique({
+      where: { id: driveId },
     });
 
-    // Then, delete the drive itself
-    await db.drive.delete({
-      where: {
-        id: driveId,
-      },
-    });
+    if (!driveExists) {
+      return NextResponse.json(
+        { error: "Drive not found" },
+        { status: 404 }
+      );
+    }
+
+    await db.$transaction([
+      db.driveApplication.deleteMany({
+        where: { driveId },
+      }),
+      db.drive.delete({
+        where: { id: driveId },
+      }),
+    ]);
 
     return NextResponse.json(
       { message: "Drive deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting drive:", error.message, error.stack);
+    console.error("Error in DELETE handler:", error);
     return NextResponse.json(
-      { error: "An internal server error occurred" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

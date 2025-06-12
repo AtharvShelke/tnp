@@ -1,20 +1,15 @@
-import UpdateStudent from "@/app/(portal)/student/profile/edit/[id]/page";
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
-const extractStudentId = (pathname) => {
-    const match = pathname.match(/\/api\/student\/([^/]+)/);
-    return match ? match[1] : null;
-};
-
-export const GET = async (req) => {
-    const id = extractStudentId(req.nextUrl.pathname);
+export const GET = async (req, { params }) => {
+    const { id } = await params;
     if (!id) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
 
     try {
         const student = await db.student.findUnique({
             where: { userId: id },
             include: {
+              department:true,
                 education: true,
                 technicalSkill: true,
                 project: true,
@@ -22,7 +17,11 @@ export const GET = async (req) => {
             }
         });
 
-        return NextResponse.json(student)
+        if (!student) {
+            return NextResponse.json({ message: "Student not found" }, { status: 404 });
+        }
+       
+        return NextResponse.json(student);
     } catch (error) {
         console.error("Error fetching data:", error);
         return NextResponse.json(
@@ -32,102 +31,130 @@ export const GET = async (req) => {
     }
 };
 
-// export const PUT = async(req)=>{
-//     const id = extractStudentId(req.nextUrl.pathname);
-//     if (!id) {
-//         return NextResponse.json(
-//             { message: "Invalid ID: The ID parameter is missing or malformed" },
-//             { status: 400 }
-//         )
-//     }
-//     try {
-//         const data = await req.json();
-//         console.log("Recieved data:", data);
-//         const {id:removedId, ...updateData} = data;
-//         // if(removedId) {
-//         //     return NextResponse.json(
-//         //         { message: "Invalid update data: 'id' field cannot be updated" },
-//         //         { status: 400 }
-//         //     );
-//         // }
-//         const student = await db.student.findUnique({where:{id:userId}});
-//         if (!student) {
-//             return NextResponse.json(
-//                 { message: `student not found with ID: ${id}` },
-//                 { status: 404 }
-//             );
-//         }
-//         const updateStudent = await db.student.update({
-//             where:{id},
-//             data :updateData,
-//         })
-//         return NextResponse.json(updateStudent)
-//         // return NextResponse.json(data)
-//     } catch (error) {
-//         if (error instanceof SyntaxError && error.message.includes("JSON")) {
-//             return NextResponse.json(
-//                 { message: "Invalid JSON in request body" },
-//                 { status: 400 }
-//             );
-//         }
+export const PUT = async (req, { params }) => {
+  const { id } = await params;
+  
+  if (!id) {
+    return NextResponse.json(
+      { message: "Student ID is required" },
+      { status: 400 }
+    );
+  }
 
-//         if (error.code) {
-//             return NextResponse.json(
-//                 { message: `Database error: ${error.code}` },
-//                 { status: 500 }
-//             );
-//         }
+  let updateData;
+  try {
+    updateData = await req.json();
+    if (!updateData || typeof updateData !== 'object') {
+      return NextResponse.json(
+        { message: "Invalid request body" },
+        { status: 400 }
+      );
+    }
+  } catch (error) {
+    console.error("JSON Parse Error:", error);
+    return NextResponse.json(
+      { message: "Invalid JSON format" },
+      { status: 400 }
+    );
+  }
 
-//     }
-// }
-export const PUT = async (request) => {
+  try {
+    // Check if student exists
+    const existingStudent = await db.student.findUnique({
+      where: { userId: id },
+    });
+
+    if (!existingStudent) {
+      return NextResponse.json(
+        { message: "Student not found" },
+        { status: 404 }
+      );
+    }
+
+    // Prepare the update data
+    const dataToUpdate = {
+      ...updateData,
+      // Handle department relation
+      department: updateData.departmentId ? {
+        connect: { id: updateData.departmentId }
+      } : undefined
+    };
+
+    // Remove fields that shouldn't be directly updated
+    delete dataToUpdate.departmentId;
+    delete dataToUpdate.id;
+    delete dataToUpdate.userId;
+    delete dataToUpdate.user;
+
+    // Process relations
+    const processRelation = (field) => {
+      if (!updateData[field] || typeof updateData[field] !== 'object') return undefined;
+      
+      return {
+        deleteMany: {},
+        create: Array.isArray(updateData[field].create) ? 
+          updateData[field].create : 
+          [updateData[field].create]
+      };
+    };
+
+    const relations = ['education', 'technicalSkill', 'project', 'studentDocument'];
+    relations.forEach(relation => {
+      const processed = processRelation(relation);
+      if (processed) {
+        dataToUpdate[relation] = processed;
+      }
+    });
+
+    // Update the student record
+    const updatedStudent = await db.student.update({
+      where: { userId: id },
+      data: dataToUpdate,
+      include: {
+        education: true,
+        technicalSkill: true,
+        project: true,
+        studentDocument: true,
+        department: true
+      },
+    });
+
+    return NextResponse.json(updatedStudent);
+  } catch (error) {
+    console.error("[STUDENT_PUT]", error);
+    return NextResponse.json(
+      { 
+        message: "Internal server error",
+        error: error.message 
+      },
+      { status: 500 }
+    );
+  }
+};
+export const DELETE = async (req, { params }) => {
+    const { id } =await params;
+    if (!id) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+
     try {
-        const userId = extractStudentId(request.nextUrl.pathname);
-
-        if (!userId) {
-            return NextResponse.json(
-                { message: "Invalid ID: The ID parameter is missing or malformed" },
-                { status: 400 }
-            );
-        }
-
-        const data = await request.json();
-
-        if ("id" in data) {
-            return NextResponse.json(
-                { message: "Invalid update: 'id' field cannot be modified" },
-                { status: 400 }
-            );
-        }
-
-        const student = await db.student.findUnique({ where: { userId } });
-
-        if (!student) {
-            return NextResponse.json(
-                { message: `Student not found with ID: ${userId}` },
-                { status: 404 }
-            );
-        }
-
-        const updateStudent = await db.student.update({
-            where: { userId },
-            data
+        // First check if student exists
+        const existingStudent = await db.student.findUnique({
+            where: { userId: id }
         });
 
-        return NextResponse.json({ updateStudent });
-
-    } catch (error) {
-        console.error("Update Error:", error);
-
-        if (error instanceof SyntaxError && error.message.includes("JSON")) {
-            return NextResponse.json(
-                { message: "Invalid JSON in request body" },
-                { status: 400 }
-            );
+        if (!existingStudent) {
+            return NextResponse.json({ message: "Student not found" }, { status: 404 });
         }
 
+        // Delete the student and related records (cascade delete should handle this if set up in schema)
+        await db.student.delete({
+            where: { userId: id }
+        });
+
+        return NextResponse.json({ message: "Student deleted successfully" });
+    } catch (error) {
+        console.error("[STUDENT_DELETE]", error);
         return NextResponse.json(
-            { message: `Internal Server Error: ${error.message}` },
+            { error: error.message || "Internal server error" },
             { status: 500 }
         );
     }

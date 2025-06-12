@@ -13,13 +13,12 @@ export default function EditDepartmentModal({ isOpen, onClose, department, onSav
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Pass the updated department back to the parent
     onSave({ ...department, title });
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg shadow-md p-6 w-1/3">
+      <div className="bg-white rounded-lg shadow-md p-6 w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
         <h2 className="text-2xl font-bold mb-4">Edit Department</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

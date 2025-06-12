@@ -1,5 +1,7 @@
 'use client';
 
+import { makePostRequest } from "@/lib/apiRequest";
+import { makeAdmin } from "@/lib/functions";
 import { Link2, Loader2 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -13,9 +15,9 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [processingRole, setProcessingRole] = useState(null);
   const [message, setMessage] = useState({ text: '', type: '' });
-
+  const userId = session?.user?.id;
   useEffect(() => {
-    console.log(session?.user?.role)
+
     if (status === "authenticated") {
       if (session.user.role === "ADMIN" || session.user.role === "COORDINATOR" || session.user.role === "RECRUITER") {
         router.replace("/dashboard");
@@ -27,12 +29,9 @@ const Page = () => {
     }
   }, [status, session, router]);
 
-  const handleRoleChange = async (apiUrl, successMessage, redirect = false) => {
+  const handleRoleChange = async (apiUrl, successMessage, redirect = false, userId) => {
     setProcessingRole(apiUrl);
     setMessage({ text: '', type: '' });
-    const userId = session?.user?.id;
-   
-
     try {
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -59,6 +58,7 @@ const Page = () => {
       setProcessingRole(null);
     }
   };
+
 
   if (status === "loading") {
     return (
@@ -94,7 +94,8 @@ const Page = () => {
                 handleRoleChange(
                   `${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinatorApproval`,
                   'Successfully sent the coordinator request to admin. Wait for confirmation',
-                  true
+                  true,
+                  userId
                 )
               }
               disabled={processingRole === `${process.env.NEXT_PUBLIC_BASE_URL}/api/coordinatorApproval`}
@@ -107,12 +108,24 @@ const Page = () => {
               )}
             </button>
 
-           
+
             <Link href="/recruiter/new">
               <div className="p-6 bg-yellow-500 text-white font-semibold rounded-lg shadow-lg hover:bg-yellow-600 transition-all flex items-center justify-center">
                 Recruiter
               </div>
             </Link>
+            {/* <button
+              onClick={async () => {
+                setLoading(true); // Optional improvement for visual feedback
+                await makeAdmin(userId);
+                setLoading(false);
+              }}
+              disabled={loading}
+              className="p-6 bg-white border border-gray-200 rounded-lg shadow flex items-center justify-center"
+            >
+              {loading ? 'Processing...' : 'Make Admin'}
+            </button> */}
+
           </div>
         ) : null}
 

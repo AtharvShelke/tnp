@@ -8,42 +8,59 @@ const extractCoordinatorId = (pathname) => {
 };
 
 // Using named exports with async functions
-export async function GET(req) {
-  const id = extractCoordinatorId(req.nextUrl.pathname);
-  if (!id) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+export async function GET(req, { params }) {
+  const { id } = await params; // Destructure id directly from params
+  
+  if (!id) {
+    return NextResponse.json(
+      { message: "Invalid ID" },
+      { status: 400 }
+    );
+  }
 
   try {
     const coordinator = await db.coordinator.findUnique({
       where: { userId: id },
+      include: {
+        user:true,
+        department: true
+      }
     });
 
     if (coordinator) {
-      const department = await db.department.findUnique({
-        where:{
-          id:coordinator.departmentId
-        }
-      })
+      // No need to fetch department again since it's included in the first query
       const data = {
-        
         coordinator,
-        dept: department.title
-      }
-      return NextResponse.json({ isCoordinator: true, data:data });
+        dept: coordinator.department?.title || null
+      };
+      
+      return NextResponse.json({ 
+        isCoordinator: true, 
+        data: data 
+      });
     } else {
       const user = await db.user.findUnique({
         where: { id: id },
       });
      
       if (user) {
-        return NextResponse.json({ isCoordinator: false, data:user });
+        return NextResponse.json({ 
+          isCoordinator: false, 
+          data: user 
+        });
       } else {
-        return NextResponse.json({ message: "User not found" }, { status: 404 });
+        return NextResponse.json(
+          { message: "User not found" }, 
+          { status: 404 }
+        );
       }
     }
   } catch (error) {
     console.error("Error fetching data:", error);
     return NextResponse.json(
-      { error: error.message || "An error occurred while fetching data" },
+      { 
+        error: error.message || "An error occurred while fetching data" 
+      },
       { status: 500 }
     );
   }

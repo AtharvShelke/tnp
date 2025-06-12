@@ -12,7 +12,7 @@ export const POST = async (request) => {
         const data = await request.json();
         const department = await db.department.create({ data });
 
-        console.log('department created:', department);  
+        console.log('Department created:', department);  
         return NextResponse.json(department); 
     } catch (error) {
        console.log(error)

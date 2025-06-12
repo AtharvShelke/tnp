@@ -89,13 +89,18 @@ export default function BookletPage() {
                     {loading ? (
                         <div className="w-full h-[600px] bg-gray-300 animate-pulse rounded-md"></div>
                     ) : (
-                        <iframe
-                            src={booklet?.pdfUrl}
-                            className="w-full h-[600px] rounded-md border"
-                            frameBorder="0"
-                        ></iframe>
+                        booklet?.pdfUrl ? (
+                            <iframe
+                                src={booklet.pdfUrl}
+                                className="w-full h-[600px] rounded-md border"
+                                frameBorder="0"
+                            ></iframe>
+                        ) : (
+                            <div className="text-gray-500 italic">No PDF available for preview.</div>
+                        )
                     )}
                 </div>
+
             </div>
         </div>
     );
