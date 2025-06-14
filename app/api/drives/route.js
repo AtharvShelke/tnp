@@ -7,12 +7,12 @@ const prisma = new PrismaClient();
 export async function POST(req) {
     try {
         const data = await req.json();
-        
+
         const {
             referenceNumber,
             title,
             driveDepartments,
-            
+
             industryType,
             ctc,
             about,
@@ -31,7 +31,8 @@ export async function POST(req) {
             minCGPA,
             maxBacklogs
         } = data;
-
+        const fminCGPA = minCGPA ? parseFloat(minCGPA) : 0;
+        const imaxBacklogs = maxBacklogs !== undefined ? parseInt(maxBacklogs) : 0;
         const drive = await prisma.drive.create({
             data: {
                 referenceNumber,
@@ -41,7 +42,7 @@ export async function POST(req) {
                         title: dept.title,
                     })),
                 },
-                
+
                 industryType,
                 ctc,
                 about,
@@ -52,12 +53,12 @@ export async function POST(req) {
                 eligibility,
                 link,
                 downloadlink,
-                driveDate: new Date(driveDate), 
-                lastDriveDate: new Date(lastDriveDate), 
+                driveDate: new Date(driveDate),
+                lastDriveDate: new Date(lastDriveDate),
                 imageUrl,
                 creatorId,
-                minCGPA,
-                maxBacklogs,
+                minCGPA:fminCGPA,
+                maxBacklogs:imaxBacklogs,
                 rounds: {
                     create: rounds.map((round) => ({
                         title: round.title,
@@ -79,15 +80,15 @@ export async function POST(req) {
 export const GET = async (request) => {
     try {
         const drives = await db.drive.findMany({
-            include:{
-                rounds:true,
-                driveDepartments:true
+            include: {
+                rounds: true,
+                driveDepartments: true
             }
         });
-        
+
         return NextResponse.json(drives);
     } catch (error) {
-        return NextResponse.json({error, message:"error "})
+        return NextResponse.json({ error, message: "error " })
     }
 };
 

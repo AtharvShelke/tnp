@@ -35,8 +35,8 @@ export const GET = async (req) => {
         );
     }
 };
-export const PUT = async (req, {params}) => {
-    const {id} = await params;
+export const PUT = async (req, { params }) => {
+    const { id } = await params;
 
     if (!id) {
         return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
@@ -44,7 +44,7 @@ export const PUT = async (req, {params}) => {
 
     try {
         const body = await req.json();
-        
+
         // Validate required fields
         if (!body.title || !body.referenceNumber || !body.driveDate || !body.lastDriveDate) {
             return NextResponse.json(
@@ -52,8 +52,8 @@ export const PUT = async (req, {params}) => {
                 { status: 400 }
             );
         }
-   const minCGPA = body.minCGPA ? parseFloat(body.minCGPA) : null;
-        const maxBacklogs = body.maxBacklogs !== undefined ? parseInt(body.maxBacklogs) : null;
+        const minCGPA = body.minCGPA ? parseFloat(body.minCGPA) : 0;
+        const maxBacklogs = body.maxBacklogs !== undefined ? parseInt(body.maxBacklogs) : 0;
         // Start transaction to update drive and related data
         const updatedDrive = await db.$transaction(async (prisma) => {
             // Update the drive
@@ -110,7 +110,7 @@ export const PUT = async (req, {params}) => {
                         data: body.driveDepartments.map(dept => ({
                             driveId: id,
                             title: dept.title,
-                            
+
                         }))
                     });
                 }
