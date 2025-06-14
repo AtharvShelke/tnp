@@ -42,18 +42,17 @@ export default function NewActivity({ initialData = {}, isUpdate = false }) {
     setDropdownOpen(!dropdownOpen);
   };
 
-  const handleCheckboxChange = (department) => {
+ const handleCheckboxChange = (department) => {
     setSelectedDepartments((prev) => {
-      const exists = prev.some((dept) => dept.title === department.title);
+      const exists = prev.some((dept) => dept.id === department.id);
       if (exists) {
-
-        return prev.filter((dept) => dept.title !== department.title);
+        return prev.filter((dept) => dept.id !== department.id);
       } else {
-
-        return [...prev, { title: department.title }];
+        return [...prev, { id: department.id}];
       }
     });
   };
+
   const router = useRouter();
 
   const onSubmit = async (data) => {
@@ -62,7 +61,7 @@ export default function NewActivity({ initialData = {}, isUpdate = false }) {
     data.imageUrl = imageUrl;
     data.activityDepartments = selectedDepartments;
     try {
-
+      console.log("FRONTEND_DATA: ", data);
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/activities`, {
         method: 'POST',
         headers: {
@@ -130,23 +129,23 @@ export default function NewActivity({ initialData = {}, isUpdate = false }) {
                 : "Select Departments"}
             </button>
             {dropdownOpen && (
-              <div className="absolute left-0 w-full bg-white border rounded shadow mt-1 z-10">
-                {departments.map((department) => (
-                  <label
-                    key={department.id}
-                    className="flex items-center p-2 hover:bg-gray-100"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedDepartments.some((dept) => dept.title === department.title)}
-                      onChange={() => handleCheckboxChange(department)}
-                      className="mr-2"
-                    />
-                    {department.title}
-                  </label>
-                ))}
-              </div>
-            )}
+                <div className="absolute left-0 w-full bg-white border rounded shadow mt-1 z-10 max-h-60 overflow-y-auto">
+                  {departments.map((department) => (
+                    <label
+                      key={department.id}
+                      className="flex items-center p-2 hover:bg-gray-100"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedDepartments.some((dept) => dept.id === department.id)}
+                        onChange={() => handleCheckboxChange(department)}
+                        className="mr-2"
+                      />
+                      {department.title}
+                    </label>
+                  ))}
+                </div>
+              )}
           </div>
 
 

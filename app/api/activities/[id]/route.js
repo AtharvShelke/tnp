@@ -8,7 +8,11 @@ export const GET = async (request, { params }) => {
         const activity = await db.activity.findUnique({
             where: { id },
             include: {
-                activityDepartments: true
+                activityDepartments: {
+                    include: {
+                        department: true
+                    }
+                }
             }
         });
 
@@ -54,16 +58,15 @@ export const PUT = async (request, { params }) => {
         // Then update departments if provided
         if (body.activityDepartments) {
             // First delete existing departments
-            await db.activityDepartment.deleteMany({
+            await db.activityDepartments.deleteMany({
                 where: { activityId: id }
             });
 
             // Then create new ones
-            await db.activityDepartment.createMany({
+            await db.activityDepartments.createMany({
                 data: body.activityDepartments.map(dept => ({
                     activityId: id,
-                    departmentId: dept.departmentId,
-                    // Other department fields if needed
+                    departmentId: dept.id,
                 }))
             });
         }
@@ -72,7 +75,11 @@ export const PUT = async (request, { params }) => {
         const fullActivity = await db.activity.findUnique({
             where: { id },
             include: {
-                activityDepartments: true
+                activityDepartments: {
+                    include: {
+                        department: true
+                    }
+                }
             }
         });
 
@@ -94,7 +101,6 @@ export const DELETE = async (request, { params }) => {
     const { id } = await params;
 
     try {
-        // Use the correct model name (ActivityDepartments instead of activityDepartment)
         await db.$transaction([
             db.activityDepartments.deleteMany({
                 where: { activityId: id }

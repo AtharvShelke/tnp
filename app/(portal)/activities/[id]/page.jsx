@@ -19,11 +19,12 @@ export default function ActivityPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const { data: session } = useSession();
   const userRole = session?.user?.role;
-
+  
   useEffect(() => {
     const fetchActivity = async (id) => {
       try {
         const data = await getRequest(`activities/${id}`);
+        
         setActivity(data);
         setError(null);
       } catch (error) {
@@ -172,7 +173,7 @@ export default function ActivityPage() {
             {loading
               ? 'Loading'
               : activity.activityDepartments.map((dept, i) => (
-                <li key={i}>{dept.title}</li>
+                (<li key={i}>{(dept.department.title)}</li>)
               ))}
           </ul>
         </div>

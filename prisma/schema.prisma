@@ -18,7 +18,8 @@ model Department {
   title   String
   Student Student[]
 
-  Coordinator Coordinator[]
+  Coordinator         Coordinator[]
+  ActivityDepartments ActivityDepartments[]
 }
 
 model Booklet {
@@ -60,8 +61,8 @@ model Drive {
   driveDate        DateTime
   lastDriveDate    DateTime
   downloadlink     String?
-  minCGPA     Float?
-  maxBacklogs Int?
+  minCGPA          Float?
+  maxBacklogs      Int?
   driveDepartments DriveDepartments[]
   DriveApplication DriveApplication[]
 }
@@ -81,8 +82,10 @@ model DriveDepartments {
 }
 
 model ActivityDepartments {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  title String
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  departmentId String?     @db.ObjectId
+  
 
   Activity   Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
   activityId String?   @db.ObjectId

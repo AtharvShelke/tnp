@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
     try {
         const data = await request.json();
+        console.log('BACKEND DATA: ', data)
         const {
             referenceNumber,
             title,
@@ -24,7 +25,8 @@ export async function POST(request) {
                 imageUrl,
                 activityDepartments: {
                     create: activityDepartments?.map((dept) => ({
-                        departmentId: dept.departmentId,
+                        departmentId: dept.id,
+
                         // Include other department fields if needed
                     })) || [],
                 },
@@ -39,7 +41,7 @@ export async function POST(request) {
     } catch (error) {
         console.error('[ACTIVITIES_POST]', error);
         return NextResponse.json(
-            { 
+            {
                 message: "Failed to create activity",
                 error: process.env.NODE_ENV === 'development' ? error.message : undefined,
             },
@@ -51,22 +53,24 @@ export async function POST(request) {
 export const GET = async (request) => {
     try {
         const { searchParams } = new URL(request.url);
-        
+
         // Query parameters
         const page = searchParams.get('page');
         const limit = searchParams.get('limit');
         const departmentId = searchParams.get('departmentId');
 
-        // Base query options
         const queryOptions = {
             include: {
-                activityDepartments: true,
+                activityDepartments: {
+                    include: {
+                        department: true
+                    }
+                }
             },
             orderBy: {
-                date: 'desc', // Using 'date' field from schema
-            },
+                date: 'desc'
+            }
         };
-
         // Add pagination if requested
         if (page && limit) {
             const pageNumber = parseInt(page, 10);
@@ -110,7 +114,7 @@ export const GET = async (request) => {
     } catch (error) {
         console.error('[ACTIVITIES_GET]', error);
         return NextResponse.json(
-            { 
+            {
                 message: "Internal server error",
                 error: process.env.NODE_ENV === 'development' ? error.message : undefined,
             },
