@@ -69,13 +69,14 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <EditCoordinatorModal
+        {session?.user?.role === "COORDINATOR" && ( <EditCoordinatorModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           coordinatorData={coordinatorData}
           department={department}
           onUpdate={handleUpdate}
-        />
+        />)}
+       
         {/* Profile Header */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
           <div className="md:flex">

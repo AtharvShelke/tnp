@@ -16,8 +16,9 @@ export default function ApplicationPage() {
     const fetchApplications = async (page = 1, limit = 10) => {
         setLoading(true);
         try {
-            const response = await getRequest(`drives/application`);
-            setData(response?.data || []);
+            const response = await getRequest(`application`);
+            
+            setData(response?.applications || []);
             setPagination(response?.pagination || { page, limit, total: 0 });
         } catch (error) {
             console.error('Failed to fetch applications:', error);

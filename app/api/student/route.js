@@ -184,7 +184,15 @@ export const GET = async (request) => {
                 technicalSkill:true,
                 education:true,
                 project:true,
-                studentDocument:true
+                studentDocument:true,
+                user:{
+                    select:{
+                        name:true,
+                        email:true,
+                        pfp:true,
+                    }
+                },
+                department:true
             }
         });
         

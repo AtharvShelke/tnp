@@ -9,11 +9,21 @@ export const GET = async (req, { params }) => {
         const student = await db.student.findUnique({
             where: { userId: id },
             include: {
+              user:{
+                select:{
+                  email:true,
+                pfp:true,
+                role:true,
+                name:true,
+                ShortlistedStudents:true
+                }
+              },
               department:true,
                 education: true,
                 technicalSkill: true,
                 project: true,
-                studentDocument: true
+                studentDocument: true,
+                
             }
         });
 

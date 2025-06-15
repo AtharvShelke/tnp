@@ -15,13 +15,15 @@ export default function AllStudentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [cgpaFilter, setCgpaFilter] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
+  const [graduationYearFilter, setGraduationYearFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('card'); // Default to Card View
-  const [placedFilter, setPlacedFilter] = useState(''); // New filter for placed students
+  const [viewMode, setViewMode] = useState('card');
+  const [placedFilter, setPlacedFilter] = useState('');
+  const [departments, setDepartments] = useState([]);
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
-  const userRole = session?.user?.role; // Fetch user role
+  const userRole = session?.user?.role;
 
   useEffect(() => {
     if (!currentUserId) {
@@ -31,23 +33,29 @@ export default function AllStudentsPage() {
 
     const fetchData = async () => {
       try {
-        const [students, users, departments] = await Promise.all([
-          getRequest(`student`),
-          getRequest(`user`),
-          getRequest(`departments`),
-        ]);
+        const students = await getRequest("student");
+        console.log("STUDENT_DATA", (students));
 
-        const userMap = Object.fromEntries(users.map(user => [user.id, user]));
-        const departmentMap = Object.fromEntries(departments.map(dep => [dep.id, dep]));
+        // Extract unique departments from student data
+        const deptMap = new Map();
+        students.forEach(student => {
+          if (student.department && !deptMap.has(student.department.id)) {
+            deptMap.set(student.department.id, {
+              id: student.department.id,
+              title: student.department.title
+            });
+          }
+        });
+        setDepartments(Array.from(deptMap.values()));
 
         const combinedData = students.map(student => ({
           userId: student.userId,
           prn: student.PRN,
-          name: userMap[student.userId]?.name || 'N/A',
-          department: departmentMap[student.departmentId]?.title || 'Unknown',
+          name: student?.user?.name || 'N/A',
+          department: student?.department?.title || 'Unknown',
           dob: formDateFromString(student.dob),
           gender: student.gender,
-          email: userMap[student.userId]?.email || 'N/A',
+          email: student.user?.email || 'N/A',
           phone: student.phone,
           address: student.address,
           cgpa: student.cgpa,
@@ -60,7 +68,11 @@ export default function AllStudentsPage() {
           preference2: student.preference2,
           preference3: student.preference3,
           placed: student.placed,
-          pfp: userMap[student.userId]?.pfp || '/logo.jpg',
+          pfp: student.user?.pfp || '/default-avatar.png',
+          technicalSkills: student.technicalSkill,
+          education: student.education,
+          projects: student.project,
+          documents: student.studentDocument
         }));
 
         setStudentData(combinedData);
@@ -83,7 +95,7 @@ export default function AllStudentsPage() {
       student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.cgpa.toString().includes(searchQuery) // Filter by CGPA in search
+      student.cgpa.toString().includes(searchQuery)
     );
 
     if (cgpaFilter) {
@@ -92,6 +104,10 @@ export default function AllStudentsPage() {
 
     if (departmentFilter) {
       filtered = filtered.filter(student => student.department.toLowerCase() === departmentFilter.toLowerCase());
+    }
+
+    if (graduationYearFilter) {
+      filtered = filtered.filter(student => student.passOutYear.toString() === graduationYearFilter);
     }
 
     if (placedFilter) {
@@ -106,7 +122,7 @@ export default function AllStudentsPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [searchQuery, cgpaFilter, departmentFilter, placedFilter, studentData]);
+  }, [searchQuery, cgpaFilter, departmentFilter, graduationYearFilter, placedFilter, studentData]);
 
   const handleDownload = () => {
     const dataToExport = filteredData.map(({ prn, name, dob, department, gender, email, phone, address, admissionType, passOutYear, cgpa, liveBacklogs, deadBacklogs, yearGap, preference1, preference2, preference3, placed }) => ({
@@ -118,6 +134,17 @@ export default function AllStudentsPage() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
     XLSX.writeFile(workbook, 'students.xlsx');
   };
+
+  // Get unique graduation years for the filter dropdown
+  const graduationYears = useMemo(() => {
+    const years = new Set();
+    studentData.forEach(student => {
+      if (student.passOutYear) {
+        years.add(student.passOutYear);
+      }
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [studentData]);
 
   if (loading) return <Loader />;
   if (error) return <div className="text-center py-20 text-red-500">Error: {error}</div>;
@@ -146,6 +173,9 @@ export default function AllStudentsPage() {
             value={cgpaFilter}
             onChange={(e) => setCgpaFilter(e.target.value)}
             className="border rounded-lg p-2 text-gray-800 w-40"
+            step="0.1"
+            min="0"
+            max="10"
           />
 
           <select
@@ -154,18 +184,22 @@ export default function AllStudentsPage() {
             className="border rounded-lg p-2 text-gray-800 w-40"
           >
             <option value="">All Departments</option>
-            <option value="Computer Science and Engineering">Computer Science and Engineering</option>
-            <option value="Robotics and Artificial Intelligence">Robotics and Artificial Intelligence</option>
-            <option value="Mechanical and Mechatronics Engineering (Additive Manufacturing)">Mechanical and Mechatronics Engineering (Additive Manufacturing)</option>
-            <option value="Electronics and Computer Engineering">Electronics and Computer Engineering</option>
-            <option value="Electrical and Computer Engineering">Electrical and Computer Engineering</option>
-            <option value="Civil Engineering (Construction Technology)">Civil Engineering (Construction Technology)</option>
-            <option value="Mechanical Engineering">Mechanical Engineering</option>
-            <option value="Chemical Engineering">Chemical Engineering</option>
-            <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
-            <option value="Architecture">Architecture</option>
-            <option value="Machine Learning">Machine Learning</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.title}>{dept.title}</option>
+            ))}
           </select>
+
+          <select
+            value={graduationYearFilter}
+            onChange={(e) => setGraduationYearFilter(e.target.value)}
+            className="border rounded-lg p-2 text-gray-800 w-40"
+          >
+            <option value="">All Years</option>
+            {graduationYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+
           <select
             value={placedFilter}
             onChange={(e) => setPlacedFilter(e.target.value)}
@@ -175,7 +209,7 @@ export default function AllStudentsPage() {
             <option value="placed">Placed</option>
             <option value="notPlaced">Not Placed</option>
           </select>
-          {/* View Mode Toggle */}
+          
           <button
             onClick={() => setViewMode(viewMode === 'card' ? 'admin' : 'card')}
             className="flex items-center bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-all shadow-md"
@@ -198,39 +232,41 @@ export default function AllStudentsPage() {
 
       {/* Toggle Between Views */}
       {viewMode === 'admin' ? (
-        <DataTable columns={['prn', 'name', 'dob', 'department', 'gender', 'email', 'phone', 'address', 'cgpa', 'admissionType', 'passOutYear', 'liveBacklogs', 'deadBacklogs', 'yearGap', 'preference1', 'preference2', 'preference3', 'placed']} data={filteredData} />
+        <DataTable 
+          columns={['prn', 'name', 'dob', 'department', 'gender', 'email', 'phone', 'address', 'cgpa', 'admissionType', 'passOutYear', 'liveBacklogs', 'deadBacklogs', 'yearGap', 'preference1', 'preference2', 'preference3', 'placed']} 
+          data={filteredData} 
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {/* Card View Logic Here */}
           {filteredData.length > 0 ? (
             filteredData.map((student) => (
               <div
                 key={student.userId}
                 className="bg-white p-6 pb-16 rounded-2xl shadow-lg border border-gray-200 flex flex-col transition duration-200 hover:shadow-2xl hover:-translate-y-2 relative overflow-hidden group"
               >
-                {/* Background Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-100 opacity-20 rounded-2xl pointer-events-none" />
 
-                {/* Profile Picture */}
                 <img
                   src={student.pfp}
                   alt={student.name}
                   className="w-28 h-28 rounded-full object-cover shadow-lg border-4 border-white mx-auto transition group-hover:scale-105"
                 />
 
-                {/* Name & Department */}
                 <h2 className="text-lg font-bold text-gray-800 mt-4 text-center">{student.name}</h2>
                 <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
                   <University className="w-5 h-5 text-gray-500" /> {student.department}
                 </p>
 
-                {/* CGPA */}
                 <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
                   <GraduationCap className="w-5 h-5 text-gray-500" />
                   CGPA: <span className="font-semibold text-gray-800">{student.cgpa}</span>
                 </p>
 
-                {/* View Profile Button */}
+                <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                  <GraduationCap className="w-5 h-5 text-gray-500" />
+                  Graduation: <span className="font-semibold text-gray-800">{student.passOutYear}</span>
+                </p>
+
                 <Link
                   href={`/students/profile/${student.userId}`}
                   className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-4/5 bg-gray-900 text-white py-2 text-center rounded-lg hover:bg-gray-700 transition font-medium shadow-md group-hover:scale-105"

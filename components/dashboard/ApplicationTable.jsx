@@ -10,8 +10,9 @@ export default function ApplicationTable({ data, columns, onDataChange }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [applicationToDelete, setApplicationToDelete] = useState(null);
-
+ 
   const handleEdit = (application) => {
+    console.log("edit application: ",JSON.stringify(application))
     setCurrentApplication(application);
     setShowModal(true);
   };
@@ -44,7 +45,7 @@ export default function ApplicationTable({ data, columns, onDataChange }) {
 
   const handleDeleteConfirm = async () => {
     if (!applicationToDelete) return;
-    
+
     setIsDeleting(true);
     try {
       await deleteRequest(`drives/application?id=${applicationToDelete}`);
@@ -81,23 +82,22 @@ export default function ApplicationTable({ data, columns, onDataChange }) {
           {data.map((item) => (
             <tr className="bg-white border-b hover:bg-gray-50" key={item.id}>
               <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                {item.referenceNumber}
+                {item.drive.referenceNumber}
               </th>
-              <td className="px-6 py-4">{item.title}</td>
-              <td className="px-6 py-4">{item.prn}</td>
-              <td className="px-6 py-4">{item.name}</td>
-              <td className="px-6 py-4">{item.department}</td>
+              <td className="px-6 py-4">{item.drive.title}</td>
+              <td className="px-6 py-4">{item.user.Student?.[0]?.PRN || 'N/A'}</td>
+              <td className="px-6 py-4">{item.user.name}</td>
+              <td className="px-6 py-4">{item.user.Student?.[0]?.department?.title || 'N/A'}</td>
               <td className="px-6 py-4">
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  item.status === 'approved' ? 'bg-green-100 text-green-800' :
-                  item.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                  'bg-yellow-100 text-yellow-800'
-                }`}>
+                <span className={`px-2 py-1 rounded-full text-xs ${item.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    item.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                  }`}>
                   {item.status}
                 </span>
               </td>
               <td className="px-6 py-4">
-                {item.isplaced ? (
+                {item.user.Student?.[0]?.placed ? (
                   <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs">Placed</span>
                 ) : (
                   <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs">Not Placed</span>
@@ -123,6 +123,7 @@ export default function ApplicationTable({ data, columns, onDataChange }) {
             </tr>
           ))}
         </tbody>
+
       </table>
 
       {showModal && currentApplication && (

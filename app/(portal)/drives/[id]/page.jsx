@@ -11,7 +11,7 @@ import DeletionConfirmationModal from './model/DeletionConfirmationModal';
 import Image from 'next/image';
 
 export default function DrivePage() {
-   const params = useParams();
+  const params = useParams();
   const router = useRouter();
   const { id } = params;
   const [drive, setDrive] = useState(null);
@@ -28,6 +28,8 @@ export default function DrivePage() {
     cgpaCheck: false,
     backlogCheck: false
   });
+
+  const [creator, setCreator] = useState(false);
   const userId = session?.user?.id;
 
   const getDriveStatus = (driveDate, lastDriveDate) => {
@@ -61,19 +63,19 @@ export default function DrivePage() {
       // Fetch student profile
       const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/student/${userId}`);
       if (!response.ok) throw new Error('Failed to fetch student profile');
-      
+
       const studentProfile = await response.json();
-      console.log("STUDENT PROFILE:  ", studentProfile)
+
       // Basic checks
-      const departmentMatch = driveData.driveDepartments.some(dept => 
+      const departmentMatch = driveData.driveDepartments.some(dept =>
         studentProfile.department.title === dept.title
       );
-      
+
       const cgpaCheck = studentProfile.cgpa >= (driveData.minCGPA || 0);
       const backlogCheck = parseInt(studentProfile.liveBack) <= (driveData.maxBacklogs || 0);
-      
+
       const isEligible = departmentMatch && cgpaCheck && backlogCheck;
-      
+
       let message = '';
       if (!departmentMatch) {
         message = 'Your department is not eligible for this drive';
@@ -84,7 +86,7 @@ export default function DrivePage() {
       } else {
         message = 'You meet all eligibility criteria';
       }
-      
+
       setEligibilityCheck({
         isEligible,
         message,
@@ -92,7 +94,7 @@ export default function DrivePage() {
         cgpaCheck,
         backlogCheck
       });
-      
+
       return isEligible;
     } catch (error) {
       console.error('Eligibility check failed:', error);
@@ -135,8 +137,12 @@ export default function DrivePage() {
           lastDriveDate: formDateFromString(data.lastDriveDate),
           status: status,
         };
+        if (driveData.creatorId === userId) {
+          
+          setCreator(true)
+        }
         setDrive(driveData);
-        
+
         // Check eligibility only if user is a student
         await checkEligibility(driveData, session?.user);
       } catch (error) {
@@ -171,7 +177,7 @@ export default function DrivePage() {
       });
 
       const result = await response.json();
-      
+
       if (response.ok) {
         toast.success('Successfully applied for the drive');
         setApplied(true);
@@ -221,11 +227,11 @@ export default function DrivePage() {
   if (!drive) {
     return <div className="text-center py-10">Drive not found</div>;
   }
-  
+
   const renderStudentActions = () => {
     switch (drive.status) {
       case "active":
-       return (
+        return (
           <div className="flex flex-col gap-3">
             {drive?.link && (
               <a
@@ -237,30 +243,28 @@ export default function DrivePage() {
                 Application Link
               </a>
             )}
-            
+
             {/* Only show eligibility message for STUDENT role */}
             {session?.user?.role === 'STUDENT' && eligibilityCheck.message && (
-              <div className={`text-sm p-2 rounded-md ${
-                eligibilityCheck.isEligible 
+              <div className={`text-sm p-2 rounded-md ${eligibilityCheck.isEligible
                   ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                   : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-              }`}>
+                }`}>
                 {eligibilityCheck.message}
               </div>
             )}
-            
+
             <button
               onClick={handleApply}
               disabled={applied || applying || (session?.user?.role === 'STUDENT' && !eligibilityCheck.isEligible)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                applied
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${applied
                   ? 'bg-green-600 text-white cursor-not-allowed'
                   : applying
-                  ? 'bg-gray-600 text-white cursor-wait'
-                  : session?.user?.role === 'STUDENT' && !eligibilityCheck.isEligible
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-gray-800 hover:bg-gray-900 text-white'
-              }`}
+                    ? 'bg-gray-600 text-white cursor-wait'
+                    : session?.user?.role === 'STUDENT' && !eligibilityCheck.isEligible
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-gray-800 hover:bg-gray-900 text-white'
+                }`}
             >
               {applying ? 'Applying...' : applied ? 'Applied' : 'Apply'}
             </button>
@@ -313,7 +317,7 @@ export default function DrivePage() {
 
         {/* Action Buttons */}
         <div className="w-full md:w-auto mt-4 md:mt-0">
-          {session?.user?.role === 'ADMIN' && (
+          {session?.user?.role === 'ADMIN' || creator === true && (
             <div className="flex flex-wrap gap-2">
               <a
                 href={`/drives/${id}/application`}
@@ -322,19 +326,22 @@ export default function DrivePage() {
                 View Applications
               </a>
               <button
-                onClick={() => setShowEditModal(true)}  
+                type="button"
+                onClick={() => setShowEditModal(true)}
                 className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
               >
                 Edit
               </button>
               <button
-                onClick={() => setShowDeleteModal(true)} 
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
                 className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
               >
                 Delete
               </button>
             </div>
           )}
+
           {session?.user?.role === 'COORDINATOR' && (
             <a
               href={`/drives/${id}/application`}
@@ -369,14 +376,14 @@ export default function DrivePage() {
               <p className="text-gray-500 dark:text-gray-400">Bond</p>
               <p className="text-gray-900 dark:text-gray-200">{drive?.bond || '-'}</p>
             </div>
-            
+
             <div className="pt-3 mt-3 border-t border-gray-100 dark:border-gray-700">
               <h3 className="text-md font-medium mb-2 text-gray-900 dark:text-white">Departments</h3>
               <ul className="space-y-1">
-                {drive?.driveDepartments?.length ? 
+                {drive?.driveDepartments?.length ?
                   drive.driveDepartments.map((d, i) => (
                     <li key={i} className="text-gray-700 dark:text-gray-300">{d.title}</li>
-                  )) : 
+                  )) :
                   <li className="text-gray-500 dark:text-gray-400">No departments available</li>
                 }
               </ul>
@@ -398,14 +405,14 @@ export default function DrivePage() {
                 <p className="text-gray-900 dark:text-gray-200">{drive?.lastDriveDate || '-'}</p>
               </div>
             </div>
-            
+
             <div>
               <h3 className="text-md font-medium mb-2 text-gray-900 dark:text-white">Description</h3>
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
                 {drive?.description || 'No description available'}
               </p>
             </div>
-            
+
             <div>
               <h3 className="text-md font-medium mb-2 text-gray-900 dark:text-white">Eligibility</h3>
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
@@ -416,7 +423,7 @@ export default function DrivePage() {
                   <strong>Minimum CGPA:</strong> {drive.minCGPA}
                 </p>
               )}
-              {drive?.maxBacklogs && (
+              {drive?.maxBacklogs >= 0 && (
                 <p className="mt-1 text-gray-700 dark:text-gray-300">
                   <strong>Maximum Backlogs Allowed:</strong> {drive.maxBacklogs}
                 </p>
@@ -427,11 +434,11 @@ export default function DrivePage() {
       </div>
 
       {/* Modals */}
-      <EditDriveModal 
-        show={showEditModal} 
-        handleClose={() => setShowEditModal(false)} 
-        drive={drive} 
-        onUpdate={handleDriveUpdate} 
+      <EditDriveModal
+        show={showEditModal}
+        handleClose={() => setShowEditModal(false)}
+        drive={drive}
+        onUpdate={handleDriveUpdate}
       />
 
       <DeletionConfirmationModal

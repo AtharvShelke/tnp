@@ -6,20 +6,32 @@ const extractRecruiterId = (pathname) => {
     return match ? match[1] : null;
 };
 
-export const GET = async (req) => {
-    const recruiterId = extractRecruiterId(req.nextUrl.pathname);
+export const GET = async (req, {params}) => {
+   const {id} = await params;
     
-    if (!recruiterId) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+    if (!id) return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
 
     try {
-        const shortlist = await db.shortlistedStudents.findMany({
-            where: { recruiterId },
-            include: {
-                user: true,
-                recruiter: true,
-              
+      const shortlist = await db.shortlistedStudents.findMany({
+  where: { recruiterId: id },
+  include: {
+    user: {
+      select: {
+        name: true,
+        email: true,
+        pfp: true,
+        role: true,
+        Student: {
+            include:{
+                department:true
             }
-        });
+        }, // ✅ include related student model here
+      },
+    },
+    recruiter: true,
+  },
+});
+
 
         return NextResponse.json(shortlist)
     } catch (error) {

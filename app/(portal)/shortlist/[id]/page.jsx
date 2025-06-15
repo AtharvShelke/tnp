@@ -9,76 +9,83 @@ import { GraduationCap, Mail, Phone, University, Search, Download, LayoutGrid, T
 import Link from 'next/link';
 import Loader from '@/components/Loader';
 
-export default function AllStudentsPage() {
+export default function ShortlistPage() {
   const [studentData, setStudentData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [depts, setDepts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [cgpaFilter, setCgpaFilter] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('card'); // Default to Card View
-  const [placedFilter, setPlacedFilter] = useState(''); // New filter for placed students
+  const [viewMode, setViewMode] = useState('card');
+  const [placedFilter, setPlacedFilter] = useState('');
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const userRole = session?.user?.role; // Fetch user role
+  const userRole = session?.user?.role;
 
   useEffect(() => {
     if (!userId) {
       setLoading(false);
       return;
     }
+
     const fetchShortlistData = async () => {
-      const data = await getRequest(`shortlist/${userId}`);
-      console.log(data)
-    }
-    fetchShortlistData();
-    const fetchData = async () => {
       try {
-        const [students, users, departments] = await Promise.all([
-          getRequest(`student`),
-          getRequest(`user`),
-          getRequest(`departments`),
-        ]);
+        let shortlistData = [];
+        if (userRole === "ADMIN" || userRole === "COORDINATOR") {
+          shortlistData = await getRequest(`shortlist`);
+        } else if (userRole === 'RECRUITER') {
+          shortlistData = await getRequest(`shortlist/${userId}`);
+        }
 
-        const userMap = Object.fromEntries(users.map(user => [user.id, user]));
-        const departmentMap = Object.fromEntries(departments.map(dep => [dep.id, dep]));
+        // Process the shortlist data to extract student information
+        const processedData = shortlistData.map(item => {
+          const student = item.user.Student[0];
+          const department = student.department;
+          
+          // Add department to departments list if not already present
+          setDepts(prev => {
+            const exists = prev.some(d => d.id === department.id);
+            return exists ? prev : [...prev, department];
+          });
 
-        const combinedData = students.map(student => ({
-          userId: student.userId,
-          prn: student.PRN,
-          name: userMap[student.userId]?.name || 'N/A',
-          department: departmentMap[student.departmentId]?.title || 'Unknown',
-          dob: formDateFromString(student.dob),
-          gender: student.gender,
-          email: userMap[student.userId]?.email || 'N/A',
-          phone: student.phone,
-          address: student.address,
-          cgpa: student.cgpa,
-          yearGap: student.yearGap,
-          liveBacklogs: student.liveBack,
-          deadBacklogs: student.deadBack,
-          admissionType: student.admissionType,
-          passOutYear: student.passOutYear,
-          preference1: student.preference1,
-          preference2: student.preference2,
-          preference3: student.preference3,
-          placed: student.placed,
-          pfp: userMap[student.userId]?.pfp || '/logo.jpg',
-        }));
+          return {
+            userId: item.userId,
+            prn: student.PRN,
+            name: item.user.name,
+            department: department.title,
+            dob: formDateFromString(student.dob),
+            gender: student.gender,
+            email: item.user.email,
+            phone: student.phone,
+            address: student.address,
+            cgpa: student.cgpa,
+            yearGap: student.yearGap,
+            liveBacklogs: student.liveBack,
+            deadBacklogs: student.deadBack,
+            admissionType: student.admissionType,
+            passOutYear: student.passOutYear,
+            preference1: student.preference1,
+            preference2: student.preference2,
+            preference3: student.preference3,
+            placed: student.placed,
+            pfp: item.user.pfp || '/default-avatar.png',
+          };
+        });
 
-        setStudentData(combinedData);
-        setFilteredData(combinedData);
+        setStudentData(processedData);
+        setFilteredData(processedData);
       } catch (error) {
-        console.error("Error fetching student data:", error);
+        console.error("Error fetching shortlist data:", error);
         setError(error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [userId]);
+    fetchShortlistData();
+  }, [userId, userRole]);
 
   // Function to handle filtering
   const applyFilters = () => {
@@ -87,7 +94,7 @@ export default function AllStudentsPage() {
       student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.cgpa.toString().includes(searchQuery) // Filter by CGPA in search
+      student.cgpa.toString().includes(searchQuery)
     );
 
     if (cgpaFilter) {
@@ -112,14 +119,12 @@ export default function AllStudentsPage() {
     applyFilters();
   }, [searchQuery, cgpaFilter, departmentFilter, placedFilter, studentData]);
 
-  
-
   if (loading) return <Loader />;
   if (error) return <div className="text-center py-20 text-red-500">Error: {error}</div>;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Students</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Shortlisted Students</h1>
 
       {/* Search & Filters */}
       <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
@@ -148,19 +153,12 @@ export default function AllStudentsPage() {
             onChange={(e) => setDepartmentFilter(e.target.value)}
             className="border rounded-lg p-2 text-gray-800 w-40"
           >
-            <option value="">All Departments</option>
-            <option value="Computer Science and Engineering">Computer Science and Engineering</option>
-            <option value="Robotics and Artificial Intelligence">Robotics and Artificial Intelligence</option>
-            <option value="Mechanical and Mechatronics Engineering (Additive Manufacturing)">Mechanical and Mechatronics Engineering (Additive Manufacturing)</option>
-            <option value="Electronics and Computer Engineering">Electronics and Computer Engineering</option>
-            <option value="Electrical and Computer Engineering">Electrical and Computer Engineering</option>
-            <option value="Civil Engineering (Construction Technology)">Civil Engineering (Construction Technology)</option>
-            <option value="Mechanical Engineering">Mechanical Engineering</option>
-            <option value="Chemical Engineering">Chemical Engineering</option>
-            <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
-            <option value="Architecture">Architecture</option>
-            <option value="Machine Learning">Machine Learning</option>
+            <option value="">All</option>
+            {depts.map((d) => (
+              <option key={d.id} value={d.title}>{d.title}</option>
+            ))}
           </select>
+          
           <select
             value={placedFilter}
             onChange={(e) => setPlacedFilter(e.target.value)}
@@ -170,6 +168,7 @@ export default function AllStudentsPage() {
             <option value="placed">Placed</option>
             <option value="notPlaced">Not Placed</option>
           </select>
+          
           {/* View Mode Toggle */}
           <button
             onClick={() => setViewMode(viewMode === 'card' ? 'admin' : 'card')}
@@ -178,17 +177,14 @@ export default function AllStudentsPage() {
             {viewMode === 'card' ? <Table className="w-5 h-5 mr-2" /> : <LayoutGrid className="w-5 h-5 mr-2" />}
             {viewMode === 'card' ? 'Table View' : 'Card View'}
           </button>
-
-          
         </div>
       </div>
 
       {/* Toggle Between Views */}
       {viewMode === 'admin' ? (
-        <DataTable columns={['prn', 'name', 'dob', 'department', 'gender', 'email', 'phone', 'address', 'cgpa', 'admissionType', 'passOutYear', 'liveBacklogs', 'deadBacklogs', 'yearGap', 'preference1', 'preference2', 'preference3', 'placed']} data={filteredData} />
+        <DataTable columns={['prn', 'name', 'dob', 'department', 'gender', 'email', 'phone', 'address', 'cgpa', 'admissionType', 'passOutYear', 'liveBacklogs', 'deadBacklogs', 'yearGap', 'preference1', 'preference2', 'preference3', 'placed']} data={filteredData} userRole={userRole}/>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {/* Card View Logic Here */}
           {filteredData.length > 0 ? (
             filteredData.map((student) => (
               <div

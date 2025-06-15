@@ -6,9 +6,9 @@ const extractRecruiterId = (pathname) => {
     return match ? match[1] : null;
 };
 
-export const GET = async (request) => {
+export const GET = async (request, {params}) => {
     try {
-        const id = extractRecruiterId(request.nextUrl.pathname);
+        const {id} = await params;
 
         if (!id) {
             return NextResponse.json(
@@ -18,7 +18,7 @@ export const GET = async (request) => {
         }
 
         const recruiter = await db.recruiter.findUnique({
-            where: { id },
+            where: { userId: id },
             include: {
                 user: {
                     select: {

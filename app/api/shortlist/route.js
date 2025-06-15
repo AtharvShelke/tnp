@@ -53,3 +53,36 @@ export const POST = async (request) => {
     }
 };
 
+// get all shortlisted students
+
+
+export const GET = async (req) => {
+    try {
+        const shortlistedStudents = await db.shortlistedStudents.findMany({
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                        pfp: true,
+                        role: true,
+                        Student: {
+                            include: {
+                                department: true
+                            }
+                        },
+                    },
+                },
+                recruiter: true,
+            },
+        });
+
+        return NextResponse.json(shortlistedStudents);
+    } catch (error) {
+        console.error('Error fetching shortlisted students:', error);
+        return NextResponse.json(
+            { error: 'Failed to fetch shortlisted students' },
+            { status: 500 }
+        );
+    }
+};

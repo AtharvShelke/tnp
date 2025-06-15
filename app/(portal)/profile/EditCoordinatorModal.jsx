@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { putRequest } from '@/lib/apiRequest';
+import { getRequest, putRequest } from '@/lib/apiRequest';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
